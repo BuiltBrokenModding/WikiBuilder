@@ -25,4 +25,35 @@ public class PageTemplateTest extends TestCase
         assertEquals(1, template.injectionTags.size());
         assertEquals(1, (int) template.injectionTags.get("data:content"));
     }
+
+    @Test
+    public void testTemplate2()
+    {
+        PageTemplate template = getSmallTemplate();
+
+        assertEquals(7, template.pageSegments.length);
+        assertEquals("data:content1", template.pageSegments[1]);
+        assertEquals("data:content2", template.pageSegments[3]);
+        assertEquals("data:content3", template.pageSegments[5]);
+
+        assertEquals(3, template.injectionTags.size());
+        assertEquals(1, (int) template.injectionTags.get("data:content1"));
+        assertEquals(3, (int) template.injectionTags.get("data:content2"));
+        assertEquals(5, (int) template.injectionTags.get("data:content3"));
+    }
+
+    public static PageTemplate getSmallTemplate()
+    {
+        PageTemplate template = new PageTemplate("template", "template.html");
+        String file = "" +
+                "<html>" +
+                "   <div>" +
+                "       <p>#data:content1#</p>" +
+                "       <p>#data:content2#</p>" +
+                "       <p>#data:content3#</p>" +
+                "   </div>" +
+                "</html>";
+        template.process(file);
+        return template;
+    }
 }

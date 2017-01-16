@@ -1,6 +1,6 @@
-package com.builtbroken.builder.html;
+package com.builtbroken.builder.data;
 
-import com.builtbroken.builder.data.PageData;
+import com.builtbroken.builder.html.PageTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
