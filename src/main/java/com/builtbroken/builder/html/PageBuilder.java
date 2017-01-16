@@ -1,14 +1,11 @@
 package com.builtbroken.builder.html;
 
+import com.builtbroken.builder.utils.Utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.internal.Streams;
-import com.google.gson.stream.JsonReader;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,8 +32,6 @@ public class PageBuilder
     /** Extra variables loaded from settings to be used later */
     public HashMap<String, String> vars;
 
-    public HashMap<String, PageTemplate> templates;
-
     /**
      * Creates a new page builder instance
      *
@@ -54,7 +49,7 @@ public class PageBuilder
     {
         if (settingsFile.exists() && settingsFile.isFile())
         {
-            JsonElement element = readElement(settingsFile);
+            JsonElement element = Utils.readElement(settingsFile);
 
             if (element.isJsonObject())
             {
@@ -104,10 +99,6 @@ public class PageBuilder
                     map = (Map<String, String>) gson.fromJson(object.get("vars"), map.getClass());
                     vars.putAll(map);
                 }
-                if (object.has("template"))
-                {
-
-                }
                 //TODO print loaded settings
             }
             else
@@ -118,60 +109,6 @@ public class PageBuilder
         else
         {
             throw new RuntimeException("File is invalid for reading [" + settingsFile + "]");
-        }
-    }
-
-    /**
-     * Reads a file from disk as a json element
-     *
-     * @param file - file to load, does not check if the
-     *             file exists or is a json file.
-     * @return element
-     */
-    public static JsonElement readElement(final File file)
-    {
-        try
-        {
-            FileReader stream = new FileReader(file);
-            BufferedReader reader = new BufferedReader(stream);
-
-            JsonReader jsonReader = new JsonReader(reader);
-            JsonElement element = Streams.parse(jsonReader);
-
-            reader.close();
-            stream.close();
-            return element;
-        }
-        catch (Exception e)
-        {
-            throw new RuntimeException("Failed to parse file as json [" + file + "]");
-        }
-    }
-
-    /**
-     * Converts a file read from disk into a string for parsing
-     *
-     * @param file - file, does not check if the file is valid
-     * @return string
-     */
-    public static String readFileAsString(final File file)
-    {
-        try (BufferedReader br = new BufferedReader(new FileReader(file)))
-        {
-            final StringBuilder sb = new StringBuilder();
-            String line = br.readLine();
-
-            while (line != null)
-            {
-                sb.append(line);
-                sb.append(System.lineSeparator());
-                line = br.readLine();
-            }
-            return sb.toString();
-        }
-        catch (Exception e)
-        {
-            throw new RuntimeException("Failed to read [" + file + "]");
         }
     }
 
