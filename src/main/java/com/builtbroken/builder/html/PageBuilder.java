@@ -35,6 +35,8 @@ public class PageBuilder
     /** Extra variables loaded from settings to be used later */
     public HashMap<String, String> vars;
 
+    public HashMap<String, PageTemplate> templates;
+
     /**
      * Creates a new page builder instance
      *
@@ -50,83 +52,126 @@ public class PageBuilder
 
     public void parseSettings()
     {
-        try
+        if (settingsFile.exists() && settingsFile.isFile())
         {
-            if (settingsFile.exists() && settingsFile.isFile())
+            JsonElement element = readElement(settingsFile);
+
+            if (element.isJsonObject())
             {
-                FileReader stream = new FileReader(settingsFile);
-                BufferedReader reader = new BufferedReader(stream);
-
-                JsonReader jsonReader = new JsonReader(reader);
-                JsonElement element = Streams.parse(jsonReader);
-
-                if (element.isJsonObject())
+                JsonObject object = element.getAsJsonObject();
+                if (object.has("images"))
                 {
-                    JsonObject object = element.getAsJsonObject();
-                    if (object.has("images"))
+                    String value = object.getAsJsonPrimitive("images").getAsString();
+                    if (value.startsWith("."))
                     {
-                        String value = object.getAsJsonPrimitive("images").getAsString();
-                        if (value.startsWith("."))
-                        {
-                            imageDirectory = new File(workingDirectory, value.replace("." + File.separator, ""));
-                        }
-                        else
-                        {
-                            imageDirectory = new File(value);
-                        }
+                        imageDirectory = new File(workingDirectory, value.replace("." + File.separator, ""));
                     }
-
-                    if (object.has("content"))
+                    else
                     {
-                        String value = object.getAsJsonPrimitive("content").getAsString();
-                        if (value.startsWith("."))
-                        {
-                            contentDirectory = new File(workingDirectory, value.replace("." + File.separator, ""));
-                        }
-                        else
-                        {
-                            contentDirectory = new File(value);
-                        }
-                    }
-
-                    if (object.has("categories"))
-                    {
-                        String value = object.getAsJsonPrimitive("categories").getAsString();
-                        if (value.startsWith("."))
-                        {
-                            categoryFile = new File(workingDirectory, value.replace("." + File.separator, ""));
-                        }
-                        else
-                        {
-                            categoryFile = new File(value);
-                        }
-                    }
-                    if (object.has("vars"))
-                    {
-                        Gson gson = new Gson();
-                        Map<String, String> map = new HashMap();
-                        map = (Map<String, String>) gson.fromJson(object.get("vars"), map.getClass());
-                        vars.putAll(map);
+                        imageDirectory = new File(value);
                     }
                 }
-                else
+
+                if (object.has("content"))
                 {
-                    reader.close();
-                    stream.close();
-                    throw new RuntimeException("File does not contain a json object [" + settingsFile + "]");
+                    String value = object.getAsJsonPrimitive("content").getAsString();
+                    if (value.startsWith("."))
+                    {
+                        contentDirectory = new File(workingDirectory, value.replace("." + File.separator, ""));
+                    }
+                    else
+                    {
+                        contentDirectory = new File(value);
+                    }
                 }
 
-                reader.close();
-                stream.close();
+                if (object.has("categories"))
+                {
+                    String value = object.getAsJsonPrimitive("categories").getAsString();
+                    if (value.startsWith("."))
+                    {
+                        categoryFile = new File(workingDirectory, value.replace("." + File.separator, ""));
+                    }
+                    else
+                    {
+                        categoryFile = new File(value);
+                    }
+                }
+                if (object.has("vars"))
+                {
+                    Gson gson = new Gson();
+                    Map<String, String> map = new HashMap();
+                    map = (Map<String, String>) gson.fromJson(object.get("vars"), map.getClass());
+                    vars.putAll(map);
+                }
+                if (object.has("template"))
+                {
+
+                }
+                //TODO print loaded settings
             }
             else
             {
-                throw new RuntimeException("File is invalid for reading [" + settingsFile + "]");
+                throw new RuntimeException("File does not contain a json object [" + settingsFile + "]");
             }
+        }
+        else
+        {
+            throw new RuntimeException("File is invalid for reading [" + settingsFile + "]");
+        }
+    }
+
+    /**
+     * Reads a file from disk as a json element
+     *
+     * @param file - file to load, does not check if the
+     *             file exists or is a json file.
+     * @return element
+     */
+    public static JsonElement readElement(final File file)
+    {
+        try
+        {
+            FileReader stream = new FileReader(file);
+            BufferedReader reader = new BufferedReader(stream);
+
+            JsonReader jsonReader = new JsonReader(reader);
+            JsonElement element = Streams.parse(jsonReader);
+
+            reader.close();
+            stream.close();
+            return element;
         }
         catch (Exception e)
         {
-            throw new RuntimeException("Unexpected error while loading " + settingsFile, e);
+            throw new RuntimeException("Failed to parse file as json [" + file + "]");
+        }
+    }
+
+    /**
+     * Converts a file read from disk into a string for parsing
+     *
+     * @param file - file, does not check if the file is valid
+     * @return string
+     */
+    public static String readFileAsString(final File file)
+    {
+        try (BufferedReader br = new BufferedReader(new FileReader(file)))
+        {
+            final StringBuilder sb = new StringBuilder();
+            String line = br.readLine();
+
+            while (line != null)
+            {
+                sb.append(line);
+                sb.append(System.lineSeparator());
+                line = br.readLine();
+            }
+            return sb.toString();
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException("Failed to read [" + file + "]");
         }
     }
 
@@ -137,7 +182,9 @@ public class PageBuilder
      */
     public void loadWikiData()
     {
-
+        //TODO load category file
+        //TODO load category data
+        //TODO use category data to file files
     }
 
     /**
@@ -145,7 +192,7 @@ public class PageBuilder
      */
     public void parseWikiData()
     {
-
+        //TODO parse all found files
     }
 
     /**
@@ -154,7 +201,10 @@ public class PageBuilder
      */
     public void buildWikiData()
     {
-
+        //TODO link wiki pages together
+        //TODO generate category footer
+        //TODO link all images
+        //TODO replace 'keys' with page links
     }
 
     /**
@@ -164,7 +214,10 @@ public class PageBuilder
      */
     public void buildPages()
     {
-
+        //TODO inject data into page templates
+        //TODO output pages
+        //TODO validate pages
+        //TODO if in GUI mod show pages to user (Ask first
     }
 
     /**
@@ -174,6 +227,8 @@ public class PageBuilder
      */
     public void loadHTML()
     {
-
+        //TODO load templates
+        //TODO validate templates
+        //TODO convert templates into writer files for easier injection
     }
 }
