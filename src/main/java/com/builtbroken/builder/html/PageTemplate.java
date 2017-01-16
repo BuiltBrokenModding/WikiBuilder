@@ -2,7 +2,6 @@ package com.builtbroken.builder.html;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Templates are used to turn data into actual HTML pages.
@@ -34,7 +33,7 @@ public class PageTemplate
      *             templates from, unless the file
      *             is set to a direct path
      */
-    public void loadAndProcess(File home)
+    public void load(File home)
     {
         File file;
         if (file_string.startsWith("./"))
@@ -46,49 +45,47 @@ public class PageTemplate
             file = new File(file_string);
         }
 
-        String templateString = PageBuilder.readFileAsString(file);
+        process(PageBuilder.readFileAsString(file));
+    }
 
+    /**
+     * Processes the template that was loaded from file.
+     * <p>
+     * It splits the template by "#" looking for tags
+     * to inject data into it. A valid tag must start
+     * with "page:" or "data:" in order to be used. If it
+     * doesn't then it will be ignored and show up on the
+     * final HTML page as a string.
+     * <p>
+     * Page denotes the injection point for a page.
+     * <p>
+     * data denotes the injection point for a value.
+     *
+     * @param templateString - template as a string
+     */
+    public void process(String templateString)
+    {
+        //Clear old tags and init
         injectionTags = new HashMap();
+        //Split string to make it easier to format
         pageSegments = templateString.split("#");
 
+        //Loop through segments looking for tags
         for (int i = 0; i < pageSegments.length; i++)
         {
             final String s = pageSegments[i];
             //Anything longer than 100 is most likely not an injection key
             if (s.length() < 100)
             {
+                //Lower case tag to make it easier to check
                 String string = s.toLowerCase();
                 if (string.startsWith("data") || string.startsWith("page"))
                 {
+                    //Add tag as lower case to make it easier to check
                     injectionTags.put(string.toLowerCase(), i);
                 }
             }
         }
     }
 
-    /**
-     * Creates a page using this template
-     *
-     * @param data - injection data (Tag, data)
-     * @return new page
-     */
-    public String createPage(HashMap<String, String> data)
-    {
-        String[] copy = pageSegments.clone();
-        for (Map.Entry<String, String> entry : data.entrySet())
-        {
-            String key = entry.getKey().toLowerCase();
-            if (injectionTags.containsKey(key))
-            {
-                int index = injectionTags.get(key);
-                copy[index] = entry.getValue();
-            }
-        }
-        String output = "";
-        for (String string : pageSegments)
-        {
-            output += string;
-        }
-        return output;
-    }
 }
