@@ -1,5 +1,7 @@
 package com.builtbroken.builder.html;
 
+import com.builtbroken.builder.utils.Utils;
+
 import java.io.File;
 import java.util.HashMap;
 
@@ -16,9 +18,19 @@ public class PageTemplate
     /** Location of the file on disc as a string */
     public final String file_string;
 
+    /** Places in the template that call for injection */
     public HashMap<String, Integer> injectionTags;
+    public HashMap<String, Integer> subPages;
+
+    /** Page broken into segments for easy injection */
     public String[] pageSegments;
 
+    /**
+     * Creates a new template instance
+     *
+     * @param tag  - name of the template, also used as an injection tag
+     * @param file - location of the template on disk
+     */
     public PageTemplate(String tag, String file)
     {
         this.tag = tag;
@@ -35,17 +47,8 @@ public class PageTemplate
      */
     public void load(File home)
     {
-        File file;
-        if (file_string.startsWith("./"))
-        {
-            file = new File(home, file_string.replace("." + File.separator, ""));
-        }
-        else
-        {
-            file = new File(file_string);
-        }
-
-        process(PageBuilder.readFileAsString(file));
+        File  file = Utils.getFile(home, file_string);
+        process(Utils.readFileAsString(file));
     }
 
     /**
@@ -79,13 +82,16 @@ public class PageTemplate
             {
                 //Lower case tag to make it easier to check
                 String string = s.toLowerCase();
-                if (string.startsWith("data") || string.startsWith("page"))
+                if (string.startsWith("data"))
                 {
                     //Add tag as lower case to make it easier to check
                     injectionTags.put(string.toLowerCase(), i);
                 }
+                else if(string.startsWith("page"))
+                {
+                    subPages.put(string.toLowerCase(), i);
+                }
             }
         }
     }
-
 }

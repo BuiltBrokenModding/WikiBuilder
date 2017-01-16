@@ -1,6 +1,7 @@
 package com.builtbroken.builder;
 
 import com.builtbroken.builder.html.PageBuilder;
+import com.builtbroken.builder.utils.Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,15 +32,7 @@ public class WikiBuilder
         //Use settings
         if (launchSettings.containsKey("workingFolder"))
         {
-            String value = launchSettings.get("workingFolder");
-            if (value.startsWith("."))
-            {
-                workingDirector = new File(value); //TODO make sure this works
-            }
-            else
-            {
-                workingDirector = new File(value.replace("." + File.separator, ""));
-            }
+            workingDirector = Utils.getFile(new File("."), launchSettings.get("workingFolder"));
         }
         if (workingDirector == null)
         {
@@ -52,15 +45,7 @@ public class WikiBuilder
 
         if (launchSettings.containsKey("settingsFile"))
         {
-            String value = launchSettings.get("settingsFile");
-            if (value.startsWith("."))
-            {
-                settingsFile = new File(workingDirector, value.replace("." + File.separator, ""));
-            }
-            else
-            {
-                settingsFile = new File(value);
-            }
+            settingsFile = Utils.getFile(workingDirector, launchSettings.get("settingsFile"));
         }
 
         if (settingsFile == null)

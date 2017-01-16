@@ -1,6 +1,5 @@
 package com.builtbroken.test.data;
 
-import com.builtbroken.builder.data.PageData;
 import junit.framework.TestCase;
 import org.junit.Test;
 
@@ -13,7 +12,6 @@ public class PageDataTest extends TestCase
     @Test
     public void testInit()
     {
-        PageData data = new PageData("page");
-        assertEquals("page", data.pageName);
+        
     }
 }

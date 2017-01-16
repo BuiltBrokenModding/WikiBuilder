@@ -1,12 +1,21 @@
 package com.builtbroken.builder.html;
 
+import com.builtbroken.builder.data.CategoryData;
+import com.builtbroken.builder.data.Page;
+import com.builtbroken.builder.data.PageData;
+import com.builtbroken.builder.theme.PageTheme;
 import com.builtbroken.builder.utils.Utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -19,18 +28,28 @@ public class PageBuilder
 {
     /** Main directory to read and write files inside */
     public final File workingDirectory;
-    /** */
+    /** Main directory to read and write files inside */
+    public final File outputDirectory;
+    /** File for loading settings */
     public final File settingsFile;
 
     /** Location to access images */
     public File imageDirectory;
-    /** location to access content pages */
-    public File contentDirectory;
     /** Location to get cateogry data from */
     public File categoryFile;
 
     /** Extra variables loaded from settings to be used later */
     public HashMap<String, String> vars;
+
+    /** Theme/templates used to generate pages. */
+    public PageTheme pageTheme;
+
+    /** All categories for the wiki */
+    public List<CategoryData> categoryData;
+    /** All pages for the wiki */
+    public List<PageData> loadedWikiData;
+    /** Actual generated pages in data form */
+    public List<Page> generatedPages;
 
     /**
      * Creates a new page builder instance
@@ -43,13 +62,21 @@ public class PageBuilder
     {
         this.workingDirectory = workingDirectory;
         this.settingsFile = settingsFile;
+        if (launchSettings.containsKey("outputPath"))
+        {
+            outputDirectory = Utils.getFile(workingDirectory, launchSettings.get("outputPath"));
+        }
+        else
+        {
+            outputDirectory = new File(workingDirectory, "output");
+        }
     }
 
     public void parseSettings()
     {
         if (settingsFile.exists() && settingsFile.isFile())
         {
-            JsonElement element = Utils.readElement(settingsFile);
+            JsonElement element = Utils.toJsonElement(settingsFile);
 
             if (element.isJsonObject())
             {
@@ -57,40 +84,20 @@ public class PageBuilder
                 if (object.has("images"))
                 {
                     String value = object.getAsJsonPrimitive("images").getAsString();
-                    if (value.startsWith("."))
-                    {
-                        imageDirectory = new File(workingDirectory, value.replace("." + File.separator, ""));
-                    }
-                    else
-                    {
-                        imageDirectory = new File(value);
-                    }
+                    imageDirectory = Utils.getFile(workingDirectory, value);
                 }
-
-                if (object.has("content"))
+                else
                 {
-                    String value = object.getAsJsonPrimitive("content").getAsString();
-                    if (value.startsWith("."))
-                    {
-                        contentDirectory = new File(workingDirectory, value.replace("." + File.separator, ""));
-                    }
-                    else
-                    {
-                        contentDirectory = new File(value);
-                    }
+                    throw new RuntimeException("Missing image folder location from " + settingsFile);
                 }
-
                 if (object.has("categories"))
                 {
                     String value = object.getAsJsonPrimitive("categories").getAsString();
-                    if (value.startsWith("."))
-                    {
-                        categoryFile = new File(workingDirectory, value.replace("." + File.separator, ""));
-                    }
-                    else
-                    {
-                        categoryFile = new File(value);
-                    }
+                    categoryFile = Utils.getFile(workingDirectory, value);
+                }
+                else
+                {
+                    throw new RuntimeException("Missing categories data from " + settingsFile);
                 }
                 if (object.has("vars"))
                 {
@@ -99,7 +106,14 @@ public class PageBuilder
                     map = (Map<String, String>) gson.fromJson(object.get("vars"), map.getClass());
                     vars.putAll(map);
                 }
-                //TODO print loaded settings
+                if (object.has("theme"))
+                {
+                    pageTheme = new PageTheme(object.getAsJsonPrimitive("theme").getAsString());
+                }
+                else
+                {
+                    throw new RuntimeException("Missing theme data from " + settingsFile);
+                }
             }
             else
             {
@@ -108,20 +122,46 @@ public class PageBuilder
         }
         else
         {
-            throw new RuntimeException("File is invalid for reading [" + settingsFile + "]");
+            throw new RuntimeException("File is invalid for reading or missing [" + settingsFile + "]");
         }
     }
 
     /**
-     * Finds all files for parsing. As
-     * well pre-builds some data needed
-     * in order to parse said files.
+     * Finds all files for parsing.
      */
     public void loadWikiData()
     {
-        //TODO load category file
-        //TODO load category data
-        //TODO use category data to file files
+        loadedWikiData = new ArrayList();
+        if (categoryFile.exists() && categoryFile.isFile())
+        {
+            JsonElement element = Utils.toJsonElement(categoryFile);
+
+            if (element.isJsonObject())
+            {
+                JsonObject object = element.getAsJsonObject();
+                if (object.has("categories"))
+                {
+                    categoryData = new ArrayList();
+                    Gson gson = new Gson();
+                    Map<String, String> map = new HashMap();
+                    map = (Map<String, String>) gson.fromJson(object.get("categories"), map.getClass());
+                    for (Map.Entry<String, String> entry : map.entrySet())
+                    {
+                        CategoryData data = new CategoryData(entry.getKey(), entry.getValue());
+                        data.load(workingDirectory);
+                        data.getPages(loadedWikiData);
+                    }
+                }
+            }
+            else
+            {
+                throw new RuntimeException("File does not contain a json object [" + categoryFile + "]");
+            }
+        }
+        else
+        {
+            throw new RuntimeException("File is invalid for reading or missing [" + categoryFile + "]");
+        }
     }
 
     /**
@@ -129,7 +169,10 @@ public class PageBuilder
      */
     public void parseWikiData()
     {
-        //TODO parse all found files
+        for (PageData data : loadedWikiData)
+        {
+            data.load();
+        }
     }
 
     /**
@@ -142,6 +185,7 @@ public class PageBuilder
         //TODO generate category footer
         //TODO link all images
         //TODO replace 'keys' with page links
+
     }
 
     /**
@@ -151,10 +195,39 @@ public class PageBuilder
      */
     public void buildPages()
     {
-        //TODO inject data into page templates
-        //TODO output pages
-        //TODO validate pages
-        //TODO if in GUI mod show pages to user (Ask first
+        //Inject missing data into
+        for (PageData data : loadedWikiData)
+        {
+            Page page = new Page();
+            page.outputFile = new File(outputDirectory, data.pageName + ".html");
+            page.setTheme(pageTheme);
+
+            //Inject page main content
+            page.inject("wikiContentHtml", data.buildHTML());
+            //Inject page data
+            page.inject(data.data);
+            //Inject global data
+            page.inject(vars);
+            //Add page to generated pages
+            generatedPages.add(page);
+        }
+
+        //Output pages to file
+        for (Page page : generatedPages)
+        {
+            String html = page.buildPage();
+            //TODO validate pages (Check that tags match, that images exist, that links work)
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(page.outputFile)))
+            {
+                bw.write(html);
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
+        //TODO copy images (Add option to skip this step)
+        //TODO if in GUI mode show pages to user (Ask user first)
     }
 
     /**
@@ -164,8 +237,7 @@ public class PageBuilder
      */
     public void loadHTML()
     {
-        //TODO load templates
-        //TODO validate templates
-        //TODO convert templates into writer files for easier injection
+        pageTheme.load(workingDirectory);
+        pageTheme.loadTemplates();
     }
 }

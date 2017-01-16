@@ -21,7 +21,7 @@ public class Utils
      *             file exists or is a json file.
      * @return element
      */
-    public static JsonElement readElement(final File file)
+    public static JsonElement toJsonElement(final File file)
     {
         try
         {
@@ -65,6 +65,18 @@ public class Utils
         catch (Exception e)
         {
             throw new RuntimeException("Failed to read [" + file + "]");
+        }
+    }
+
+    public static File getFile(File workingDirectory, String value)
+    {
+        if (value.startsWith("."))
+        {
+            return new File(workingDirectory, value.replace("." + File.separator, ""));
+        }
+        else
+        {
+            return new File(value);
         }
     }
 }

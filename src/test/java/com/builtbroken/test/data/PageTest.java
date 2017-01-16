@@ -1,8 +1,7 @@
 package com.builtbroken.test.data;
 
 import com.builtbroken.builder.data.Page;
-import com.builtbroken.builder.data.PageData;
-import com.builtbroken.builder.html.PageTemplate;
+import com.builtbroken.builder.theme.PageTheme;
 import com.builtbroken.test.html.PageTemplateTest;
 import junit.framework.TestCase;
 import org.junit.Test;
@@ -15,62 +14,51 @@ import java.util.HashMap;
  */
 public class PageTest extends TestCase
 {
-    @Test
-    public void testInit()
-    {
-        PageData data = new PageData("page");
-        Page page = new Page(data);
-
-        assertSame(data, page.data);
-    }
 
     @Test
     public void testInjectNoData()
     {
-        PageData data = new PageData("page");
-        Page page = new Page(data);
-        PageTemplate template = PageTemplateTest.getSmallTemplate();
+        Page page = new Page();
+        page.setTheme(getTheme());
 
         HashMap<String, String> injectionData = new HashMap();
-        page.inject(template, injectionData);
+        page.inject(injectionData);
 
-        assertEquals("data:content1", page.pageSegments[1]);
-        assertEquals("data:content2", page.pageSegments[3]);
-        assertEquals("data:content3", page.pageSegments[5]);
+        assertEquals("data:content1", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[1]);
+        assertEquals("data:content2", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[3]);
+        assertEquals("data:content3", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[5]);
     }
 
     @Test
     public void testInjectSomeData()
     {
-        PageData data = new PageData("page");
-        Page page = new Page(data);
-        PageTemplate template = PageTemplateTest.getSmallTemplate();
+        Page page = new Page();
+        page.setTheme(getTheme());
 
         HashMap<String, String> injectionData = new HashMap();
         injectionData.put("data:content1", "test");
-        page.inject(template, injectionData);
+        page.inject(injectionData);
 
-        assertEquals("test", page.pageSegments[1]);
-        assertEquals("data:content2", page.pageSegments[3]);
-        assertEquals("data:content3", page.pageSegments[5]);
+        assertEquals("test", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[1]);
+        assertEquals("data:content2", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[3]);
+        assertEquals("data:content3", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[5]);
     }
 
     @Test
     public void testFull()
     {
-        PageData data = new PageData("page");
-        Page page = new Page(data);
-        PageTemplate template = PageTemplateTest.getSmallTemplate();
+        Page page = new Page();
+        page.setTheme(getTheme());
 
         HashMap<String, String> injectionData = new HashMap();
         injectionData.put("data:content1", "test");
         injectionData.put("data:content2", "test1");
         injectionData.put("data:content3", "test2");
-        page.inject(template, injectionData);
+        page.inject(injectionData);
 
-        assertEquals("test", page.pageSegments[1]);
-        assertEquals("test1", page.pageSegments[3]);
-        assertEquals("test2", page.pageSegments[5]);
+        assertEquals("test", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[1]);
+        assertEquals("test1", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[3]);
+        assertEquals("test2", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[5]);
 
         final String compare = "" +
                 "<html>" +
@@ -82,5 +70,13 @@ public class PageTest extends TestCase
                 "</html>";
 
         assertEquals(compare, page.buildPage());
+    }
+
+    private PageTheme getTheme()
+    {
+        PageTheme theme =  new PageTheme("");
+        theme.mainTemplate = "template";
+        theme.templates.put("template", PageTemplateTest.getSmallTemplate());
+        return theme;
     }
 }
