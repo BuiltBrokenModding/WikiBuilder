@@ -12,6 +12,6 @@ public class PageDataTest extends TestCase
     @Test
     public void testInit()
     {
-        
+
     }
 }

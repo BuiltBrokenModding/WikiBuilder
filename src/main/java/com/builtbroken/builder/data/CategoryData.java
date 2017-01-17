@@ -72,6 +72,11 @@ public class CategoryData
         }
     }
 
+    /**
+     * Called to find all pages to be loaded
+     *
+     * @param wikiPages
+     */
     public void getPages(List<PageData> wikiPages)
     {
         if (pageDirectory.exists())
@@ -95,7 +100,7 @@ public class CategoryData
             }
             else if (file.getName().endsWith(".json"))
             {
-                wikiPages.add(new PageData(file));
+                wikiPages.add(new PageData(this, file));
             }
         }
     }

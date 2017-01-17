@@ -23,6 +23,8 @@ public class PageData
     public String pageName;
     /** Location of the json data for this page. */
     public final File file;
+    /** Category this was loaded for */
+    public CategoryData category;
     /** Data unique to just this page, will be combined with global data right before creating the page. */
     public final HashMap<String, String> data;
 
@@ -37,12 +39,16 @@ public class PageData
     /** Link replace keys for this page, used to convert '#link#' to html link code with name in other pages. */
     public HashMap<String, String> linkReplaceKeys;
 
-    public PageData(File file)
+    public PageData(CategoryData category, File file)
     {
+        this.category = category;
         this.file = file;
         data = new HashMap();
     }
 
+    /**
+     * Called to load the page from json
+     */
     public void load()
     {
         JsonElement element = Utils.toJsonElement(file);
@@ -53,6 +59,14 @@ public class PageData
             {
                 pageName = object.getAsJsonPrimitive("pageName").getAsString();
             }
+            if (object.has("type"))
+            {
+                String value = object.getAsJsonPrimitive("type").getAsString().toLowerCase();
+                if (value.equals("content"))
+                {
+                    category.pages.add(pageName);
+                }
+            }
             if (object.has("replaceKeys"))
             {
                 Gson gson = new Gson();
@@ -62,78 +76,8 @@ public class PageData
             }
             if (object.has("content"))
             {
-                String html = "";
-
-                //Convert content into HTML
-                Set<Map.Entry<String, JsonElement>> entrySet = object.getAsJsonObject("content").entrySet();
-                for (Map.Entry<String, JsonElement> entry : entrySet)
-                {
-                    //TODO replace 'startsWith' with regex or something more specific
-                    JsonElement value = entry.getValue();
-                    if (entry.getKey().startsWith("p"))
-                    {
-                        html += "<p>" + entry.getValue() + "</p>";
-                    }
-                    else if (entry.getKey().startsWith("h"))
-                    {
-                        if (value.isJsonObject())
-                        {
-                            JsonObject h = value.getAsJsonObject();
-                            String text = h.getAsJsonPrimitive("text").getAsString();
-                            int size = 2;
-                            if (h.has("size"))
-                            {
-                                JsonPrimitive p = h.getAsJsonPrimitive("size");
-                                if (p.isString())
-                                {
-                                    String s = p.getAsString().toLowerCase();
-                                    if (s.equals("small"))
-                                    {
-                                        size = 3;
-                                    }
-                                    else if (s.equals("medium"))
-                                    {
-                                        size = 2;
-                                    }
-                                    else if (s.equals("large"))
-                                    {
-                                        size = 1;
-                                    }
-                                }
-                                else
-                                {
-                                    size = p.getAsInt();
-                                }
-                            }
-                            if (h.has("link"))
-                            {
-                                String link = h.getAsJsonPrimitive("link").getAsString();
-                                if (link.startsWith("url"))
-                                {
-                                    html += "<h" + size + "><a href=\"" + link + "\">" + text + "</h" + size + ">";
-                                }
-                                else if (link.endsWith(".json"))
-                                {
-                                    html += "<h" + size + "><a href=\"#PageRef:" + link + "#\">" + text + "</h" + size + ">";
-                                }
-                                else
-                                {
-                                    html += "<h" + size + "><a href=\"#" + link + "#\">" + text + "</h" + size + ">";
-                                }
-                            }
-                        }
-                        else
-                        {
-                            html += "<h2>" + entry.getValue() + "</h2>";
-                        }
-                    }
-                    else
-                    {
-                        throw new RuntimeException("Unrecognized json element key [" + entry.getKey() + "] for html parsing from page [" + pageName + "] from file [" + file + "]");
-                    }
-                }
                 //Split HTML into segments for injection
-                process(html);
+                process(buildHTML(object.getAsJsonObject("content")));
 
             }
         }
@@ -141,6 +85,87 @@ public class PageData
         {
             throw new RuntimeException("File " + file + " is not a valid json object so can not be parsed into a wiki page.");
         }
+    }
+
+    /**
+     * Called to build the HTML data from json
+     *
+     * @param object - json content object
+     * @return HTML as string
+     */
+    public String buildHTML(final JsonObject object)
+    {
+        String html = "";
+
+        //Convert content into HTML
+        Set<Map.Entry<String, JsonElement>> entrySet = object.entrySet();
+        for (Map.Entry<String, JsonElement> entry : entrySet)
+        {
+            //TODO replace 'startsWith' with regex or something more specific
+            JsonElement value = entry.getValue();
+            if (entry.getKey().startsWith("p"))
+            {
+                html += "<p>" + entry.getValue() + "</p>";
+            }
+            else if (entry.getKey().startsWith("h"))
+            {
+                if (value.isJsonObject())
+                {
+                    JsonObject h = value.getAsJsonObject();
+                    String text = h.getAsJsonPrimitive("text").getAsString();
+                    int size = 2;
+                    if (h.has("size"))
+                    {
+                        JsonPrimitive p = h.getAsJsonPrimitive("size");
+                        if (p.isString())
+                        {
+                            String s = p.getAsString().toLowerCase();
+                            if (s.equals("small"))
+                            {
+                                size = 3;
+                            }
+                            else if (s.equals("medium"))
+                            {
+                                size = 2;
+                            }
+                            else if (s.equals("large"))
+                            {
+                                size = 1;
+                            }
+                        }
+                        else
+                        {
+                            size = p.getAsInt();
+                        }
+                    }
+                    if (h.has("link"))
+                    {
+                        String link = h.getAsJsonPrimitive("link").getAsString();
+                        if (link.startsWith("url"))
+                        {
+                            html += "<h" + size + "><a href=\"" + link + "\">" + text + "</h" + size + ">";
+                        }
+                        else if (link.endsWith(".json"))
+                        {
+                            html += "<h" + size + "><a href=\"#PageRef:" + link + "#\">" + text + "</h" + size + ">";
+                        }
+                        else
+                        {
+                            html += "<h" + size + "><a href=\"#" + link + "#\">" + text + "</h" + size + ">";
+                        }
+                    }
+                }
+                else
+                {
+                    html += "<h2>" + entry.getValue() + "</h2>";
+                }
+            }
+            else
+            {
+                throw new RuntimeException("Unrecognized json element key [" + entry.getKey() + "] for html parsing from page [" + pageName + "] from file [" + file + "]");
+            }
+        }
+        return html;
     }
 
     /**
