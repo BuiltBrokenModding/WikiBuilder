@@ -1,9 +1,14 @@
 package com.builtbroken.builder.data;
 
+import com.builtbroken.builder.html.parts.JsonProcessorHTML;
 import com.builtbroken.builder.utils.Utils;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Object containing an HTML page broken down into pieces for easy injection of data.
@@ -32,6 +37,24 @@ public class SegmentedHTML
     {
         File file = Utils.getFile(home, file_string);
         process(Utils.readFileAsString(file));
+    }
+
+    /**
+     * Converts json data into html data
+     *
+     * @param object - json content object
+     * @return HTML as string
+     */
+    public String toHTML(final JsonObject object)
+    {
+        String html = "";
+        //Convert content into HTML
+        Set<Map.Entry<String, JsonElement>> entrySet = object.entrySet();
+        for (Map.Entry<String, JsonElement> entry : entrySet)
+        {
+            html += JsonProcessorHTML.process(entry.getKey(), entry.getValue());
+        }
+        return html;
     }
 
     /**

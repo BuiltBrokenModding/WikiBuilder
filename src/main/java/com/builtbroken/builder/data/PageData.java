@@ -1,6 +1,5 @@
 package com.builtbroken.builder.data;
 
-import com.builtbroken.builder.html.parts.JsonProcessorHTML;
 import com.builtbroken.builder.utils.Utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -9,7 +8,6 @@ import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Stores information about a wiki page before it is generated
@@ -74,7 +72,7 @@ public class PageData extends SegmentedHTML
             if (object.has("content"))
             {
                 //Split HTML into segments for injection
-                process(buildHTML(object.getAsJsonObject("content")));
+                process(toHTML(object.getAsJsonObject("content")));
 
             }
         }
@@ -82,25 +80,6 @@ public class PageData extends SegmentedHTML
         {
             throw new RuntimeException("File " + file + " is not a valid json object so can not be parsed into a wiki page.");
         }
-    }
-
-    /**
-     * Called to build the HTML data from json
-     *
-     * @param object - json content object
-     * @return HTML as string
-     */
-    public String buildHTML(final JsonObject object)
-    {
-        String html = "";
-
-        //Convert content into HTML
-        Set<Map.Entry<String, JsonElement>> entrySet = object.entrySet();
-        for (Map.Entry<String, JsonElement> entry : entrySet)
-        {
-            html += JsonProcessorHTML.process(entry.getKey(), entry.getValue());
-        }
-        return html;
     }
 
     @Override
