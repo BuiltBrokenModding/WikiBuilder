@@ -25,6 +25,16 @@ public class SegmentedHTML
     /** Places in the HTML that contain a sub page reference */
     public HashMap<String, Integer> subPages = new HashMap();
 
+
+    /** References to external pages or pre-existing pages */
+    public HashMap<String, Integer> pageReferences;
+    /** References to image files */
+    public HashMap<String, Integer> imgReferences;
+
+
+    /** References to other pages that need to go though linkReplaceKeys */
+    public HashMap<String, Integer> pageLinks;
+
     /**
      * Called to load the template from disk
      * and pre-parse it for injection
@@ -76,6 +86,10 @@ public class SegmentedHTML
     {
         //Clear old tags and init
         injectionTags = new HashMap();
+        pageReferences = new HashMap();
+        pageLinks = new HashMap();
+        imgReferences = new HashMap();
+
         //Split string to make it easier to format
         htmlSegments = templateString.split("#");
 
@@ -114,6 +128,18 @@ public class SegmentedHTML
             subPages.put(key, index);
             return true;
         }
+        else if (key.startsWith("pageref:"))
+        {
+            pageReferences.put(key.substring(key.indexOf(":") + 1), index);
+        }
+        else if (key.startsWith("link:"))
+        {
+            pageLinks.put(key.substring(key.indexOf(":") + 1), index);
+        }
+        else if (key.startsWith("img:"))
+        {
+            imgReferences.put(key.substring(key.indexOf(":") + 1), index);
+        }
         return false;
     }
 
@@ -126,6 +152,11 @@ public class SegmentedHTML
      */
     public String buildHTML()
     {
-        return null;
+        String html = "";
+        for (String s : htmlSegments)
+        {
+            html += s;
+        }
+        return html;
     }
 }

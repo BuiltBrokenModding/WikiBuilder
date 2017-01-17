@@ -1,6 +1,6 @@
 package com.builtbroken.builder.data;
 
-import com.builtbroken.builder.html.PageTemplate;
+import com.builtbroken.builder.theme.PageTemplate;
 import com.builtbroken.builder.theme.PageTheme;
 
 import java.io.File;
@@ -73,7 +73,7 @@ public class Page
             String[] segment = pageSegments.get(template);
             if (segment == null)
             {
-                segment = template.pageSegments.clone();
+                segment = template.htmlSegments.clone();
             }
             //Loop data looking tags to inject
             for (Map.Entry<String, String> entry : data.entrySet())
@@ -106,7 +106,7 @@ public class Page
                 String[] segment = pageSegments.get(template);
                 if (segment == null)
                 {
-                    segment = template.pageSegments.clone();
+                    segment = template.htmlSegments.clone();
                 }
                 int index = template.injectionTags.get(tag.toLowerCase());
                 segment[index] = value;

@@ -1,4 +1,4 @@
-package com.builtbroken.builder.html;
+package com.builtbroken.builder.theme;
 
 import com.builtbroken.builder.data.SegmentedHTML;
 

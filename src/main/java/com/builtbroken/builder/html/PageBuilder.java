@@ -184,11 +184,70 @@ public class PageBuilder
      */
     public void buildWikiData()
     {
-        //TODO link wiki pages together
+        //Build up the map of replace keys
+        HashMap<String, String> linkReplaceKeys = new HashMap();
+        HashMap<String, String> imageReplaceKeys = new HashMap();
+        for (PageData data : loadedWikiData)
+        {
+            for (Map.Entry<String, String> entry : data.linkReplaceKeys.entrySet())
+            {
+                final String key = entry.getKey().toLowerCase();
+                if (!linkReplaceKeys.containsKey(key))
+                {
+                    linkReplaceKeys.put(key, "<a href=\"" + data.getOutput(vars.get("outputPath")) + "\">" + entry.getValue() + "</a>");
+                }
+                else
+                {
+                    throw new RuntimeException("Duplicate link key[" + entry.getKey() + "] was found for page [" + data.pageName + "] key is linked to " + linkReplaceKeys.get(key));
+                }
+            }
+        }
+        for (PageData data : loadedWikiData)
+        {
+            for (Map.Entry<String, String> entry : data.imgReplaceKeys.entrySet())
+            {
+                final String key = entry.getKey().toLowerCase();
+                if (!imageReplaceKeys.containsKey(key))
+                {
+                    imageReplaceKeys.put(key, "<a href=\"" + data.getOutput(vars.get("outputPath")) + "\">" + entry.getValue() + "</a>");
+                }
+                else
+                {
+                    throw new RuntimeException("Duplicate image key[" + entry.getKey() + "] was found for page [" + data.pageName + "] key is linked to " + imageReplaceKeys.get(key));
+                }
+            }
+        }
+        for (PageData data : loadedWikiData)
+        {
+            for (Map.Entry<String, Integer> entry : data.pageLinks.entrySet())
+            {
+                final String key = entry.getKey().toLowerCase();
+                if (linkReplaceKeys.containsKey(key))
+                {
+                    data.htmlSegments[entry.getValue()] = linkReplaceKeys.get(key);
+                }
+                else
+                {
+                    System.out.println("Warning: " + data.pageName + " is missing a link reference for " + entry.getKey());
+                }
+            }
+        }
+        for (PageData data : loadedWikiData)
+        {
+            for(Map.Entry<String, Integer> entry : data.imgReferences.entrySet())
+            {
+                final String key = entry.getKey().toLowerCase();
+                if(imageReplaceKeys.containsKey(key))
+                {
+                    data.htmlSegments[entry.getValue()] = imageReplaceKeys.get(key);
+                }
+                else
+                {
+                    System.out.println("Warning: " + data.pageName + " is missing an image reference for " + entry.getKey());
+                }
+            }
+        }
         //TODO generate category footer
-        //TODO link all images
-        //TODO replace 'keys' with page links
-
     }
 
     /**
@@ -202,7 +261,7 @@ public class PageBuilder
         for (PageData data : loadedWikiData)
         {
             Page page = new Page();
-            page.outputFile = new File(outputDirectory, data.pageName + ".html");
+            page.outputFile = new File(outputDirectory, data.getOutput(vars.get("outputPath")));
             page.setTheme(pageTheme);
 
             //Inject page main content

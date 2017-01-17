@@ -1,6 +1,5 @@
 package com.builtbroken.builder.theme;
 
-import com.builtbroken.builder.html.PageTemplate;
 import com.builtbroken.builder.utils.Utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;

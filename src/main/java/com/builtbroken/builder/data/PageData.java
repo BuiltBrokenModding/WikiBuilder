@@ -25,15 +25,17 @@ public class PageData extends SegmentedHTML
     public CategoryData category;
     /** Data unique to just this page, will be injected into the {@link Page} object */
     public final HashMap<String, String> data;
-
-
-    /** References to other pages in this page's HTML */
-    public HashMap<String, Integer> pageReferences;
-    /** References to other pages that need to go though linkReplaceKeys */
-    public HashMap<String, Integer> pageLinks;
+    /** Image replace keys for this page, used to convert '#img#' to html link code with name in other pages. */
+    public HashMap<String, String> imgReplaceKeys;
     /** Link replace keys for this page, used to convert '#link#' to html link code with name in other pages. */
     public HashMap<String, String> linkReplaceKeys;
 
+    /**
+     * Creates a new page data object
+     *
+     * @param category - category that loaded the page
+     * @param file     - file path of the page
+     */
     public PageData(CategoryData category, File file)
     {
         this.category = category;
@@ -46,13 +48,25 @@ public class PageData extends SegmentedHTML
      */
     public void load()
     {
+        //TODO format nano time outputs on debugger
+        debug("Loading new Page Data");
+
+        long startTime = System.nanoTime();
+        debug("\tLoading file from disk");
         JsonElement element = Utils.toJsonElement(file);
+        startTime = System.nanoTime() - startTime;
+        debug("\tDone..." + startTime + "ns");
+
         if (element.isJsonObject())
         {
+            debug("\tParsing json");
+            startTime = System.nanoTime();
+
             JsonObject object = element.getAsJsonObject();
             if (object.has("pageName"))
             {
                 pageName = object.getAsJsonPrimitive("pageName").getAsString();
+                debug("\tName: " + pageName);
             }
             if (object.has("type"))
             {
@@ -61,6 +75,7 @@ public class PageData extends SegmentedHTML
                 {
                     category.pages.add(pageName);
                 }
+                debug("\tType: " + value);
             }
             if (object.has("replaceKeys"))
             {
@@ -68,13 +83,28 @@ public class PageData extends SegmentedHTML
                 Map<String, String> map = new HashMap();
                 map = (Map<String, String>) gson.fromJson(object.get("replaceKeys"), map.getClass());
                 linkReplaceKeys.putAll(map);
+                debug("\tLinks Keys: " + linkReplaceKeys.size());
+            }
+            if (object.has("imageKeys"))
+            {
+                Gson gson = new Gson();
+                Map<String, String> map = new HashMap();
+                map = (Map<String, String>) gson.fromJson(object.get("imageKeys"), map.getClass());
+                imgReplaceKeys.putAll(map);
+                debug("\tImage Keys: " + imgReplaceKeys.size());
             }
             if (object.has("content"))
             {
+                debug("\tLoading Page Content");
+                long time = System.nanoTime();
                 //Split HTML into segments for injection
                 process(toHTML(object.getAsJsonObject("content")));
-
+                time = System.nanoTime() - time;
+                debug("\tDone..." + time + "ns");
             }
+            //Debug
+            startTime = System.nanoTime() - startTime;
+            debug("Done..." + startTime + "ns");
         }
         else
         {
@@ -82,29 +112,26 @@ public class PageData extends SegmentedHTML
         }
     }
 
-    @Override
-    public void process(String html)
+    private void debug(String msg)
     {
-        pageReferences = new HashMap();
-        pageLinks = new HashMap();
-        super.process(html);
+        //TODO add way to disable
+        //TODO use actual logging system
+        //TODO save log to disk
+        System.out.println("[PageData] " + msg);
     }
 
-    @Override
-    protected boolean processInjectionTag(String key, int index, String original)
+    /**
+     * Gets the path the page will be outputted to
+     * <p>
+     * This is used both for saving the file and linking
+     * it to other pages.
+     *
+     * @param basePath - base string path for the folder
+     *                 the page will be saved inside.
+     * @return string path, including name & extension of the file
+     */
+    public String getOutput(String basePath)
     {
-        if (!super.processInjectionTag(key, index, original))
-        {
-            if (key.startsWith("pageref:"))
-            {
-                pageReferences.put(key.substring(key.indexOf(":") + 1), index);
-            }
-            else if (key.startsWith("link:"))
-            {
-                pageLinks.put(key.substring(key.indexOf(":") + 1), index);
-            }
-            return false;
-        }
-        return true;
+        return basePath + pageName + ".html";
     }
 }
