@@ -17,10 +17,10 @@ public class PageTemplateTest extends TestCase
         String file = "<p>#data:content#</p>";
         template.process(file);
 
-        assertEquals(3, template.pageSegments.length);
-        assertEquals("<p>", template.pageSegments[0]);
-        assertEquals("data:content", template.pageSegments[1]);
-        assertEquals("</p>", template.pageSegments[2]);
+        assertEquals(3, template.htmlSegments.length);
+        assertEquals("<p>", template.htmlSegments[0]);
+        assertEquals("data:content", template.htmlSegments[1]);
+        assertEquals("</p>", template.htmlSegments[2]);
 
         assertEquals(1, template.injectionTags.size());
         assertEquals(1, (int) template.injectionTags.get("data:content"));
@@ -31,10 +31,10 @@ public class PageTemplateTest extends TestCase
     {
         PageTemplate template = getSmallTemplate();
 
-        assertEquals(7, template.pageSegments.length);
-        assertEquals("data:content1", template.pageSegments[1]);
-        assertEquals("data:content2", template.pageSegments[3]);
-        assertEquals("data:content3", template.pageSegments[5]);
+        assertEquals(7, template.htmlSegments.length);
+        assertEquals("data:content1", template.htmlSegments[1]);
+        assertEquals("data:content2", template.htmlSegments[3]);
+        assertEquals("data:content3", template.htmlSegments[5]);
 
         assertEquals(3, template.injectionTags.size());
         assertEquals(1, (int) template.injectionTags.get("data:content1"));
