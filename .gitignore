@@ -4,3 +4,4 @@
 output.txt
 build/
 WikiBuilder.txt
+!gradle-wrapper.jar
