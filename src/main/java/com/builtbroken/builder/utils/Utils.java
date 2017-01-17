@@ -64,7 +64,7 @@ public class Utils
         }
         catch (Exception e)
         {
-            throw new RuntimeException("Failed to read [" + file + "]");
+            throw new RuntimeException("Failed to read [" + file + "]", e);
         }
     }
 
@@ -72,7 +72,7 @@ public class Utils
     {
         if (value.startsWith("."))
         {
-            return new File(workingDirectory, value.replace("." + File.separator, ""));
+            return new File(workingDirectory, value.substring(2));
         }
         else
         {

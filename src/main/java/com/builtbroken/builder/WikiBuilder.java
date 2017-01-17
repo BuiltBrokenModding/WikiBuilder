@@ -2,6 +2,8 @@ package com.builtbroken.builder;
 
 import com.builtbroken.builder.html.PageBuilder;
 import com.builtbroken.builder.utils.Utils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,8 +21,9 @@ public class WikiBuilder
 
     public static void main(String... args)
     {
-        System.out.println("Wiki-Builder has been started...");
-        System.out.println("Parsing arguments...");
+        Logger logger = LogManager.getLogger("WikiBuilder");
+        logger.info("Wiki-Builder has been started...");
+        logger.info("Parsing arguments...");
 
         //Load arguments
         HashMap<String, String> launchSettings = loadArgs(args);
@@ -62,34 +65,34 @@ public class WikiBuilder
         }
 
         //Output settings
-        System.out.println("Working folder :" + workingDirector);
-        System.out.println("Settings file  :" + settingsFile);
+        logger.info("Working folder :" + workingDirector);
+        logger.info("Settings file  :" + settingsFile);
 
-        System.out.println("Creating page builder....");
-        PageBuilder builder = new PageBuilder(workingDirector, settingsFile, launchSettings);
+        logger.info("Creating page builder....");
+        PageBuilder builder = new PageBuilder(logger, workingDirector, settingsFile, launchSettings);
 
-        System.out.println("Parsing settings....");
+        logger.info("Parsing settings....");
         builder.parseSettings();
 
-        System.out.println("Loading HTML templates....");
+        logger.info("Loading HTML templates....");
         builder.loadHTML();
 
-        System.out.println("Loading wiki data....");
+        logger.info("Loading wiki data....");
         builder.loadWikiData();
 
-        System.out.println("Parsing wiki data....");
+        logger.info("Parsing wiki data....");
         builder.parseWikiData();
 
-        System.out.println("Building wiki data....");
+        logger.info("Building wiki data....");
         builder.buildWikiData();
 
-        System.out.println("Building pages....");
+        logger.info("Building pages....");
         builder.buildPages();
 
         //End of program pause
         if (!launchSettings.containsKey("noConfirm"))
         {
-            System.out.println("Press 'any' key to continue...");
+            logger.info("Press 'any' key to continue...");
             try
             {
                 System.in.read();
@@ -116,7 +119,7 @@ public class WikiBuilder
             String currentValue = "";
             for (int i = 0; i < args.length; i++)
             {
-                String next = args[i];
+                String next = args[i].trim();
                 if (next == null)
                 {
                     throw new IllegalArgumentException("Null argument detected in launch arguments");
@@ -128,7 +131,17 @@ public class WikiBuilder
                         map.put(currentArg, currentValue);
                         currentValue = "";
                     }
-                    currentArg = next.replaceFirst("-", "").trim();
+
+                    if (next.contains("="))
+                    {
+                        String[] split = next.split("=");
+                        currentArg = split[0].substring(1).trim();
+                        currentValue = split[1].trim();
+                    }
+                    else
+                    {
+                        currentArg = next.substring(1).trim();
+                    }
                 }
                 else if (currentArg != null)
                 {
@@ -142,6 +155,11 @@ public class WikiBuilder
                 {
                     throw new IllegalArgumentException("Value has no argument associated with it [" + next + "]");
                 }
+            }
+            //Add the last loaded value to the map
+            if (currentArg != null)
+            {
+                map.put(currentArg, currentValue);
             }
         }
         return map;

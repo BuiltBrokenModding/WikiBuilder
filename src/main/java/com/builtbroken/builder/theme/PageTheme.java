@@ -18,13 +18,12 @@ import java.util.Map;
 public class PageTheme
 {
     /** Location of where the theme is located */
-    public final String fileLocation;
     /** Name of the theme */
     public String name;
     /** Main template class */
     public String mainTemplate;
     /** File containing settings for the theme */
-    public File settingsFile;
+    public File themeFile;
     /** Folder containing page templates */
     public File pageDirectory;
 
@@ -34,11 +33,11 @@ public class PageTheme
      * Creates a new PageTheme instance.
      * Does not load any data or settings
      *
-     * @param fileLocation - location of theme.json file
+     * @param file - location of theme.json file
      */
-    public PageTheme(String fileLocation)
+    public PageTheme(File file)
     {
-        this.fileLocation = fileLocation;
+        this.themeFile = file;
     }
 
     /**
@@ -49,20 +48,10 @@ public class PageTheme
      */
     public void load(File workingDirectory)
     {
-        //Get settings file location
-        if (fileLocation.startsWith("."))
-        {
-            settingsFile = new File(workingDirectory, fileLocation.replace("." + File.separator, ""));
-        }
-        else
-        {
-            settingsFile = new File(fileLocation);
-        }
-
         //Parse settings file
-        if (settingsFile.exists() && settingsFile.isFile())
+        if (themeFile.exists() && themeFile.isFile())
         {
-            final JsonElement element = Utils.toJsonElement(settingsFile);
+            final JsonElement element = Utils.toJsonElement(themeFile);
             if (element.isJsonObject())
             {
                 final JsonObject object = element.getAsJsonObject();
@@ -73,30 +62,25 @@ public class PageTheme
                     Map<String, String> map = new HashMap();
                     map = (Map<String, String>) gson.fromJson(object.get("templates"), map.getClass());
 
+                    templates = new HashMap();
                     for (Map.Entry<String, String> entry : map.entrySet())
                     {
-                        templates.put(entry.getKey().toLowerCase(), new PageTemplate(entry.getKey(), entry.getValue()));
+                        String key = entry.getKey().toLowerCase();
+                        templates.put(key, new PageTemplate(key, entry.getValue()));
                     }
                 }
                 else
                 {
-                    throw new RuntimeException("File does not define any templates to load [" + settingsFile + "]");
+                    throw new RuntimeException("File does not define any templates to load [" + themeFile + "]");
                 }
                 if (object.has("pageDirectory"))
                 {
                     String value = object.getAsJsonPrimitive("pageDirectory").getAsString();
-                    if (value.startsWith("."))
-                    {
-                        pageDirectory = new File(workingDirectory, value.replace("." + File.separator, ""));
-                    }
-                    else
-                    {
-                        pageDirectory = new File(value);
-                    }
+                    pageDirectory = Utils.getFile(themeFile.getParentFile(), value);
                 }
                 else
                 {
-                    throw new RuntimeException("File does not define a directory to load template pages from [" + settingsFile + "]");
+                    throw new RuntimeException("File does not define a directory to load template pages from [" + themeFile + "]");
                 }
                 if (object.has("name"))
                 {
@@ -104,7 +88,7 @@ public class PageTheme
                 }
                 else
                 {
-                    throw new RuntimeException("File does not define the theme's name [" + settingsFile + "]");
+                    throw new RuntimeException("File does not define the theme's name [" + themeFile + "]");
                 }
                 if (object.has("main_template"))
                 {
@@ -112,17 +96,17 @@ public class PageTheme
                 }
                 else
                 {
-                    throw new RuntimeException("File does not define a main template for the theme [" + settingsFile + "]");
+                    throw new RuntimeException("File does not define a main template for the theme [" + themeFile + "]");
                 }
             }
             else
             {
-                throw new RuntimeException("File does not contain a json object [" + settingsFile + "]");
+                throw new RuntimeException("File does not contain a json object [" + themeFile + "]");
             }
         }
         else
         {
-            throw new RuntimeException("File is invalid for reading [" + settingsFile + "]");
+            throw new RuntimeException("File is invalid for reading [" + themeFile + "]");
         }
     }
 

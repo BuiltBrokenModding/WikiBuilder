@@ -11,6 +11,7 @@ import com.builtbroken.builder.utils.Utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -27,6 +28,7 @@ import java.util.Map;
  */
 public class PageBuilder
 {
+    public final Logger logger;
     /** Main directory to read and write files inside */
     public final File workingDirectory;
     /** Main directory to read and write files inside */
@@ -38,6 +40,8 @@ public class PageBuilder
     public File imageDirectory;
     /** Location to get cateogry data from */
     public File categoryFile;
+    /** Location of all pages to load */
+    public File pageDirectory;
 
     /** Extra variables loaded from settings to be used later */
     public HashMap<String, String> vars;
@@ -63,22 +67,29 @@ public class PageBuilder
      * @param settingsFile     - location of the primiary settings file
      * @param launchSettings   - launch arguments, overrides settings file in some cases and changes logic
      */
-    public PageBuilder(File workingDirectory, File settingsFile, HashMap<String, String> launchSettings)
+    public PageBuilder(Logger logger, File workingDirectory, File settingsFile, HashMap<String, String> launchSettings)
     {
+        this.logger = logger;
         this.workingDirectory = workingDirectory;
         this.settingsFile = settingsFile;
-        if (launchSettings.containsKey("outputPath"))
+        if (launchSettings.containsKey("outputDirectory"))
         {
-            outputDirectory = Utils.getFile(workingDirectory, launchSettings.get("outputPath"));
+            outputDirectory = Utils.getFile(workingDirectory, launchSettings.get("outputDirectory"));
         }
         else
         {
             outputDirectory = new File(workingDirectory, "output");
         }
+        logger.info("Output directory set to " + outputDirectory);
     }
 
     public void parseSettings()
     {
+        logger.info("Loading settings for wiki building form " + settingsFile);
+        if (!outputDirectory.exists())
+        {
+            outputDirectory.mkdirs();
+        }
         if (settingsFile.exists() && settingsFile.isFile())
         {
             JsonElement element = Utils.toJsonElement(settingsFile);
@@ -88,16 +99,23 @@ public class PageBuilder
                 JsonObject object = element.getAsJsonObject();
                 if (object.has("vars"))
                 {
+                    logger.info("Vars:");
                     Gson gson = new Gson();
                     Map<String, String> map = new HashMap();
                     map = (Map<String, String>) gson.fromJson(object.get("vars"), map.getClass());
-                    vars.putAll(map);
+                    vars = new HashMap();
+                    for (Map.Entry<String, String> entry : map.entrySet())
+                    {
+                        logger.info("\t" + entry.getKey() + " = " + entry.getValue());
+                        vars.put(entry.getKey(), entry.getValue());
+                    }
                 }
                 if (object.has("images"))
                 {
                     String value = object.getAsJsonPrimitive("images").getAsString();
                     imageDirectory = Utils.getFile(workingDirectory, value);
                     vars.put("imagePath", value);
+                    logger.info("Image Path: " + imageDirectory);
                 }
                 else
                 {
@@ -107,6 +125,7 @@ public class PageBuilder
                 {
                     String value = object.getAsJsonPrimitive("categories").getAsString();
                     categoryFile = Utils.getFile(workingDirectory, value);
+                    logger.info("Category File: " + imageDirectory);
                 }
                 else
                 {
@@ -114,7 +133,8 @@ public class PageBuilder
                 }
                 if (object.has("theme"))
                 {
-                    pageTheme = new PageTheme(object.getAsJsonPrimitive("theme").getAsString());
+                    pageTheme = new PageTheme(Utils.getFile(workingDirectory, object.getAsJsonPrimitive("theme").getAsString()));
+                    logger.info("Theme : " + pageTheme.themeFile);
                 }
                 else
                 {
@@ -130,6 +150,7 @@ public class PageBuilder
         {
             throw new RuntimeException("File is invalid for reading or missing [" + settingsFile + "]");
         }
+        logger.info("Done loading settings...");
     }
 
     /**
@@ -137,6 +158,7 @@ public class PageBuilder
      */
     public void loadWikiData()
     {
+        logger.info("Loading wiki data...");
         loadedWikiData = new ArrayList();
         if (categoryFile.exists() && categoryFile.isFile())
         {
@@ -147,17 +169,22 @@ public class PageBuilder
                 JsonObject object = element.getAsJsonObject();
                 if (object.has("categories"))
                 {
+                    logger.info("Categories:");
                     categoryData = new ArrayList();
                     Gson gson = new Gson();
                     Map<String, String> map = new HashMap();
                     map = (Map<String, String>) gson.fromJson(object.get("categories"), map.getClass());
                     for (Map.Entry<String, String> entry : map.entrySet())
                     {
+                        logger.info("\t" + entry.getKey() + " --> " + entry.getValue());
                         CategoryData data = new CategoryData(entry.getKey(), entry.getValue());
                         data.load(workingDirectory);
-                        data.getPages(loadedWikiData);
                     }
                 }
+                //Recursively load files
+                logger.info("\tSearching for pages to load...");
+                getFiles(pageDirectory, loadedWikiData);
+                logger.info("\tDone...");
             }
             else
             {
@@ -168,6 +195,27 @@ public class PageBuilder
         {
             throw new RuntimeException("File is invalid for reading or missing [" + categoryFile + "]");
         }
+        logger.info("Done loading wiki data...");
+    }
+
+    private void getFiles(File folder, List<PageData> wikiPages)
+    {
+        if (folder != null && folder.exists() && folder.isDirectory())
+        {
+            File[] files = folder.listFiles();
+            for (File file : files)
+            {
+                if (file.isDirectory())
+                {
+                    getFiles(folder, wikiPages);
+                }
+                else if (file.getName().endsWith(".json"))
+                {
+                    logger.info("\tPage:" + file);
+                    wikiPages.add(new PageData(file));
+                }
+            }
+        }
     }
 
     /**
@@ -175,10 +223,12 @@ public class PageBuilder
      */
     public void parseWikiData()
     {
+        logger.info("Parsing wiki data...");
         for (PageData data : loadedWikiData)
         {
             data.load();
         }
+        logger.info("Done parsing wiki data...");
     }
 
     /**
@@ -187,12 +237,14 @@ public class PageBuilder
      */
     public void buildWikiData()
     {
+        logger.info("Building wiki data...");
         usedImages = new ArrayList();
         images = new HashMap();
 
         //Build up the map of replacement data
         HashMap<String, String> linkReplaceKeys = new HashMap();
         HashMap<String, String> imageReplaceKeys = new HashMap();
+        logger.info("Collecting link and image data");
         for (PageData data : loadedWikiData)
         {
             for (Map.Entry<String, String> entry : data.linkReplaceKeys.entrySet())
@@ -222,6 +274,7 @@ public class PageBuilder
                 }
             }
         }
+        logger.info("Injecting link and image data");
         //Loop all pages to replace data
         for (PageData data : loadedWikiData)
         {
@@ -253,6 +306,7 @@ public class PageBuilder
             }
         }
         //TODO generate category footer
+        logger.info("Done building wiki data...");
     }
 
     /**
@@ -262,7 +316,11 @@ public class PageBuilder
      */
     public void buildPages()
     {
+        logger.info("Building pages...");
+
+        logger.info("Creating page objects and injecting data");
         //Inject missing data into
+        generatedPages = new ArrayList();
         for (PageData data : loadedWikiData)
         {
             Page page = new Page();
@@ -278,10 +336,13 @@ public class PageBuilder
             //Add page to generated pages
             generatedPages.add(page);
         }
+        logger.info("Done...");
 
+        logger.info("Saving pages to disk...");
         //Output pages to file
         for (Page page : generatedPages)
         {
+            logger.info("\tOutputting file to " + page.outputFile);
             String html = page.buildPage();
             //TODO validate pages (Check that tags match, that images exist, that links work)
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(page.outputFile)))
@@ -293,9 +354,11 @@ public class PageBuilder
                 e.printStackTrace();
             }
         }
+        logger.info("Done...");
         List<String> unusedImages = new ArrayList();
         if (!vars.containsKey("doNotCopyImages"))
         {
+            logger.info("Copying images to output...");
             for (Map.Entry<String, String> entry : images.entrySet())
             {
                 if (usedImages.contains(entry.getKey()))
@@ -315,12 +378,15 @@ public class PageBuilder
                     unusedImages.add(entry.getKey());
                 }
             }
+            logger.info("Images have been moved.");
         }
         //TODO if in GUI mode show pages to user (Ask user first)
+        logger.info("Done building pages...");
     }
 
-    public static void copyFile(File sourceFile, File destFile)
+    private void copyFile(File sourceFile, File destFile)
     {
+        logger.info("\tCopying " + sourceFile + " to " + destFile);
         //http://stackoverflow.com/questions/106770/standard-concise-way-to-copy-a-file-in-java
         try
         {
@@ -367,10 +433,18 @@ public class PageBuilder
      */
     public void loadHTML()
     {
+        logger.info("Loading HTML data");
+
+        logger.info("\tLoading theme");
         pageTheme.load(workingDirectory);
         pageTheme.loadTemplates();
+        logger.info("\tDone");
 
+        logger.info("\tLoading HTML processors");
         JsonProcessorHTML.registerPart("h", new HTMLPartHeader());
         JsonProcessorHTML.registerPart("p", new HTMLPartParagraph());
+        logger.info("\tDone");
+
+        logger.info("Done...");
     }
 }

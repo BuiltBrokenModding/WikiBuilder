@@ -28,8 +28,6 @@ public class CategoryData
     public String displayName;
     /** Page the user goes to when clicking the category name */
     public String pageID;
-    /** Location of all pages for this category */
-    public File pageDirectory;
 
     public CategoryData(String name, String fileLocation)
     {
@@ -56,10 +54,6 @@ public class CategoryData
                 {
                     pageID = object.getAsJsonPrimitive("page").getAsString();
                 }
-                if (object.has("pageDirectory"))
-                {
-                    pageDirectory = Utils.getFile(workingDirectory, object.getAsJsonPrimitive("pageDirectory").getAsString());
-                }
             }
             else
             {
@@ -69,39 +63,6 @@ public class CategoryData
         else
         {
             throw new RuntimeException("File is invalid for reading or missing [" + file + "]");
-        }
-    }
-
-    /**
-     * Called to find all pages to be loaded
-     *
-     * @param wikiPages
-     */
-    public void getPages(List<PageData> wikiPages)
-    {
-        if (pageDirectory.exists())
-        {
-            getFiles(pageDirectory, wikiPages);
-        }
-        else
-        {
-            throw new RuntimeException("The directory [" + pageDirectory + "] does not exist");
-        }
-    }
-
-    private void getFiles(File folder, List<PageData> wikiPages)
-    {
-        File[] files = folder.listFiles();
-        for (File file : files)
-        {
-            if (file.isDirectory())
-            {
-                getFiles(folder, wikiPages);
-            }
-            else if (file.getName().endsWith(".json"))
-            {
-                wikiPages.add(new PageData(this, file));
-            }
         }
     }
 }

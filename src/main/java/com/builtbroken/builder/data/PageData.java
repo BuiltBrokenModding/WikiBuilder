@@ -19,10 +19,12 @@ public class PageData extends SegmentedHTML
 {
     /** Name of the page */
     public String pageName;
+    /** Category to display under */
+    public String category;
+    /** Type of page */
+    public String type;
     /** Location of the json data for this page. */
     public final File file;
-    /** Category this was loaded for */
-    public CategoryData category;
     /** Data unique to just this page, will be injected into the {@link Page} object */
     public final HashMap<String, String> data;
     /** Image replace keys for this page, used to convert '#img#' to html link code with name in other pages. */
@@ -33,12 +35,10 @@ public class PageData extends SegmentedHTML
     /**
      * Creates a new page data object
      *
-     * @param category - category that loaded the page
-     * @param file     - file path of the page
+     * @param file - file path of the page
      */
-    public PageData(CategoryData category, File file)
+    public PageData(File file)
     {
-        this.category = category;
         this.file = file;
         data = new HashMap();
     }
@@ -70,12 +70,13 @@ public class PageData extends SegmentedHTML
             }
             if (object.has("type"))
             {
-                String value = object.getAsJsonPrimitive("type").getAsString().toLowerCase();
-                if (value.equals("content"))
-                {
-                    category.pages.add(pageName);
-                }
-                debug("\tType: " + value);
+                type = object.getAsJsonPrimitive("type").getAsString().toLowerCase();
+                debug("\tType: " + type);
+            }
+            if (object.has("category"))
+            {
+                category = object.getAsJsonPrimitive("category").getAsString().toLowerCase();
+                debug("\tCategory: " + category);
             }
             if (object.has("replaceKeys"))
             {
