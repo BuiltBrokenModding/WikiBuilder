@@ -12,10 +12,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +51,10 @@ public class PageBuilder
     public List<PageData> loadedWikiData;
     /** Actual generated pages in data form */
     public List<Page> generatedPages;
+    /** List of used images */
+    public List<String> usedImages;
+    /** Map of image keys to paths on disk (relative to workspace) */
+    public HashMap<String, String> images;
 
     /**
      * Creates a new page builder instance
@@ -84,10 +86,18 @@ public class PageBuilder
             if (element.isJsonObject())
             {
                 JsonObject object = element.getAsJsonObject();
+                if (object.has("vars"))
+                {
+                    Gson gson = new Gson();
+                    Map<String, String> map = new HashMap();
+                    map = (Map<String, String>) gson.fromJson(object.get("vars"), map.getClass());
+                    vars.putAll(map);
+                }
                 if (object.has("images"))
                 {
                     String value = object.getAsJsonPrimitive("images").getAsString();
                     imageDirectory = Utils.getFile(workingDirectory, value);
+                    vars.put("imagePath", value);
                 }
                 else
                 {
@@ -101,13 +111,6 @@ public class PageBuilder
                 else
                 {
                     throw new RuntimeException("Missing categories data from " + settingsFile);
-                }
-                if (object.has("vars"))
-                {
-                    Gson gson = new Gson();
-                    Map<String, String> map = new HashMap();
-                    map = (Map<String, String>) gson.fromJson(object.get("vars"), map.getClass());
-                    vars.putAll(map);
                 }
                 if (object.has("theme"))
                 {
@@ -184,7 +187,10 @@ public class PageBuilder
      */
     public void buildWikiData()
     {
-        //Build up the map of replace keys
+        usedImages = new ArrayList();
+        images = new HashMap();
+
+        //Build up the map of replacement data
         HashMap<String, String> linkReplaceKeys = new HashMap();
         HashMap<String, String> imageReplaceKeys = new HashMap();
         for (PageData data : loadedWikiData)
@@ -201,15 +207,14 @@ public class PageBuilder
                     throw new RuntimeException("Duplicate link key[" + entry.getKey() + "] was found for page [" + data.pageName + "] key is linked to " + linkReplaceKeys.get(key));
                 }
             }
-        }
-        for (PageData data : loadedWikiData)
-        {
             for (Map.Entry<String, String> entry : data.imgReplaceKeys.entrySet())
             {
                 final String key = entry.getKey().toLowerCase();
                 if (!imageReplaceKeys.containsKey(key))
                 {
-                    imageReplaceKeys.put(key, "<a href=\"" + data.getOutput(vars.get("outputPath")) + "\">" + entry.getValue() + "</a>");
+                    String path = vars.get("imagePath") + entry.getValue();
+                    imageReplaceKeys.put(key, "<img src=\"" + entry.getValue() + "\">");
+                    images.put(key, path);
                 }
                 else
                 {
@@ -217,6 +222,7 @@ public class PageBuilder
                 }
             }
         }
+        //Loop all pages to replace data
         for (PageData data : loadedWikiData)
         {
             for (Map.Entry<String, Integer> entry : data.pageLinks.entrySet())
@@ -231,15 +237,14 @@ public class PageBuilder
                     System.out.println("Warning: " + data.pageName + " is missing a link reference for " + entry.getKey());
                 }
             }
-        }
-        for (PageData data : loadedWikiData)
-        {
-            for(Map.Entry<String, Integer> entry : data.imgReferences.entrySet())
+            for (Map.Entry<String, Integer> entry : data.imgReferences.entrySet())
             {
                 final String key = entry.getKey().toLowerCase();
-                if(imageReplaceKeys.containsKey(key))
+                if (imageReplaceKeys.containsKey(key))
                 {
                     data.htmlSegments[entry.getValue()] = imageReplaceKeys.get(key);
+                    //Keep track of what images we have used
+                    usedImages.add(key);
                 }
                 else
                 {
@@ -288,8 +293,71 @@ public class PageBuilder
                 e.printStackTrace();
             }
         }
-        //TODO copy images (Add option to skip this step)
+        List<String> unusedImages = new ArrayList();
+        if (!vars.containsKey("doNotCopyImages"))
+        {
+            for (Map.Entry<String, String> entry : images.entrySet())
+            {
+                if (usedImages.contains(entry.getKey()))
+                {
+                    final File file = new File(imageDirectory, entry.getValue());
+                    if (file.exists())
+                    {
+                        copyFile(file, new File(outputDirectory, entry.getValue()));
+                    }
+                    else
+                    {
+                        System.out.println("Warning: Image[key='" + entry.getKey() + "' path='" + entry.getValue() + "'] is missing!!");
+                    }
+                }
+                else
+                {
+                    unusedImages.add(entry.getKey());
+                }
+            }
+        }
         //TODO if in GUI mode show pages to user (Ask user first)
+    }
+
+    public static void copyFile(File sourceFile, File destFile)
+    {
+        //http://stackoverflow.com/questions/106770/standard-concise-way-to-copy-a-file-in-java
+        try
+        {
+            if (!destFile.exists())
+            {
+                destFile.createNewFile();
+            }
+
+            FileChannel source = null;
+            FileChannel destination = null;
+
+            try
+            {
+                source = new FileInputStream(sourceFile).getChannel();
+                destination = new FileOutputStream(destFile).getChannel();
+                destination.transferFrom(source, 0, source.size());
+            }
+            catch (Exception e)
+            {
+                throw new RuntimeException("Error: Failed to copy " + sourceFile + " to " + destFile, e);
+            }
+            finally
+            {
+                if (source != null)
+                {
+                    source.close();
+                }
+                if (destination != null)
+                {
+                    destination.close();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException("Unexpected error while copying " + sourceFile + " to " + destFile, e);
+        }
     }
 
     /**
