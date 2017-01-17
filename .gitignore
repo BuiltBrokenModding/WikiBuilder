@@ -1,1 +1,7 @@
 *.iml
+*.jar
+.gradle/
+output.txt
+build/
+WikiBuilder.txt
+!gradle-wrapper.jar
