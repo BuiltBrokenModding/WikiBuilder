@@ -18,53 +18,60 @@ public class HTMLPartHeader extends HTMLPart
     @Override
     public String process(JsonElement value)
     {
-        if (value.isJsonObject())
+        try
         {
-            JsonObject h = value.getAsJsonObject();
-            String text = h.getAsJsonPrimitive("text").getAsString();
-            int size = 2;
-            if (h.has("size"))
+            if (value.isJsonObject() && !value.isJsonPrimitive())
             {
-                JsonPrimitive p = h.getAsJsonPrimitive("size");
-                if (p.isString())
+                JsonObject h = value.getAsJsonObject();
+                String text = h.getAsJsonPrimitive("text").getAsString();
+                int size = 2;
+                if (h.has("size"))
                 {
-                    String s = p.getAsString().toLowerCase();
-                    if (s.equals("small"))
+                    JsonPrimitive p = h.getAsJsonPrimitive("size");
+                    if (p.isString())
                     {
-                        size = 3;
+                        String s = p.getAsString().toLowerCase();
+                        if (s.equals("small"))
+                        {
+                            size = 3;
+                        }
+                        else if (s.equals("medium"))
+                        {
+                            size = 2;
+                        }
+                        else if (s.equals("large"))
+                        {
+                            size = 1;
+                        }
                     }
-                    else if (s.equals("medium"))
+                    else
                     {
-                        size = 2;
-                    }
-                    else if (s.equals("large"))
-                    {
-                        size = 1;
+                        size = p.getAsInt();
                     }
                 }
-                else
+                if (h.has("link"))
                 {
-                    size = p.getAsInt();
+                    String link = h.getAsJsonPrimitive("link").getAsString();
+                    if (link.startsWith("url"))
+                    {
+                        return "<h" + size + "><a href=\"" + link + "\">" + text + "</a></h" + size + ">";
+                    }
+                    else if (link.endsWith(".json"))
+                    {
+                        return "<h" + size + "><a href=\"#PageRef:" + link + "#\">" + text + "</a></h" + size + ">";
+                    }
+                    else
+                    {
+                        return "<h" + size + "><a href=\"#" + link + "#\">" + text + "</a></h" + size + ">";
+                    }
                 }
+                return "<h" + size + ">" + text + "</h" + size + ">";
             }
-            if (h.has("link"))
-            {
-                String link = h.getAsJsonPrimitive("link").getAsString();
-                if (link.startsWith("url"))
-                {
-                    return "<h" + size + "><a href=\"" + link + "\">" + text + "</a></h" + size + ">";
-                }
-                else if (link.endsWith(".json"))
-                {
-                    return "<h" + size + "><a href=\"#PageRef:" + link + "#\">" + text + "</a></h" + size + ">";
-                }
-                else
-                {
-                    return "<h" + size + "><a href=\"#" + link + "#\">" + text + "</a></h" + size + ">";
-                }
-            }
-            return "<h" + size + ">" + text + "</h" + size + ">";
+            return "<h2>" + value + "</h2>";
         }
-        return "<h2>" + value + "</h2>";
+        catch (Exception e)
+        {
+            throw new RuntimeException("Unexpected error while parsing header tag " + value, e);
+        }
     }
 }

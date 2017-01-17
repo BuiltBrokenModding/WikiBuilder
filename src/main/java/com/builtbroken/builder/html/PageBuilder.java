@@ -131,6 +131,16 @@ public class PageBuilder
                 {
                     throw new RuntimeException("Missing categories data from " + settingsFile);
                 }
+                if (object.has("pages"))
+                {
+                    String value = object.getAsJsonPrimitive("pages").getAsString();
+                    pageDirectory = Utils.getFile(workingDirectory, value);
+                    logger.info("Pages folder: " + pageDirectory);
+                }
+                else
+                {
+                    throw new RuntimeException("Missing pages location data from " + settingsFile);
+                }
                 if (object.has("theme"))
                 {
                     pageTheme = new PageTheme(Utils.getFile(workingDirectory, object.getAsJsonPrimitive("theme").getAsString()));
@@ -150,7 +160,6 @@ public class PageBuilder
         {
             throw new RuntimeException("File is invalid for reading or missing [" + settingsFile + "]");
         }
-        logger.info("Done loading settings...");
     }
 
     /**
@@ -158,7 +167,6 @@ public class PageBuilder
      */
     public void loadWikiData()
     {
-        logger.info("Loading wiki data...");
         loadedWikiData = new ArrayList();
         if (categoryFile.exists() && categoryFile.isFile())
         {
@@ -182,6 +190,7 @@ public class PageBuilder
                     }
                 }
                 //Recursively load files
+                logger.info("");
                 logger.info("\tSearching for pages to load...");
                 getFiles(pageDirectory, loadedWikiData);
                 logger.info("\tDone...");
@@ -195,7 +204,6 @@ public class PageBuilder
         {
             throw new RuntimeException("File is invalid for reading or missing [" + categoryFile + "]");
         }
-        logger.info("Done loading wiki data...");
     }
 
     private void getFiles(File folder, List<PageData> wikiPages)
@@ -207,11 +215,11 @@ public class PageBuilder
             {
                 if (file.isDirectory())
                 {
-                    getFiles(folder, wikiPages);
+                    getFiles(file, wikiPages);
                 }
                 else if (file.getName().endsWith(".json"))
                 {
-                    logger.info("\tPage:" + file);
+                    logger.info("\tPage:   " + file);
                     wikiPages.add(new PageData(file));
                 }
             }
@@ -223,12 +231,10 @@ public class PageBuilder
      */
     public void parseWikiData()
     {
-        logger.info("Parsing wiki data...");
         for (PageData data : loadedWikiData)
         {
             data.load();
         }
-        logger.info("Done parsing wiki data...");
     }
 
     /**
@@ -237,7 +243,6 @@ public class PageBuilder
      */
     public void buildWikiData()
     {
-        logger.info("Building wiki data...");
         usedImages = new ArrayList();
         images = new HashMap();
 
@@ -306,7 +311,6 @@ public class PageBuilder
             }
         }
         //TODO generate category footer
-        logger.info("Done building wiki data...");
     }
 
     /**
@@ -316,8 +320,6 @@ public class PageBuilder
      */
     public void buildPages()
     {
-        logger.info("Building pages...");
-
         logger.info("Creating page objects and injecting data");
         //Inject missing data into
         generatedPages = new ArrayList();
@@ -344,6 +346,11 @@ public class PageBuilder
         {
             logger.info("\tOutputting file to " + page.outputFile);
             String html = page.buildPage();
+
+            if (!page.outputFile.getParentFile().exists())
+            {
+                page.outputFile.getParentFile().mkdirs();
+            }
             //TODO validate pages (Check that tags match, that images exist, that links work)
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(page.outputFile)))
             {
@@ -381,7 +388,6 @@ public class PageBuilder
             logger.info("Images have been moved.");
         }
         //TODO if in GUI mode show pages to user (Ask user first)
-        logger.info("Done building pages...");
     }
 
     private void copyFile(File sourceFile, File destFile)
@@ -433,8 +439,6 @@ public class PageBuilder
      */
     public void loadHTML()
     {
-        logger.info("Loading HTML data");
-
         logger.info("\tLoading theme");
         pageTheme.load(workingDirectory);
         pageTheme.loadTemplates();
@@ -444,7 +448,5 @@ public class PageBuilder
         JsonProcessorHTML.registerPart("h", new HTMLPartHeader());
         JsonProcessorHTML.registerPart("p", new HTMLPartParagraph());
         logger.info("\tDone");
-
-        logger.info("Done...");
     }
 }

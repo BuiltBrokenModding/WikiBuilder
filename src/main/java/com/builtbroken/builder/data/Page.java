@@ -136,14 +136,25 @@ public class Page
     private String buildPages(PageTemplate template)
     {
         String output = "";
-        String[] segments = pageSegments.get(template);
-        for (Map.Entry<String, Integer> entry : template.subPages.entrySet())
+        if (template != null)
         {
-            segments[entry.getValue()] = buildPages(theme.templates.get(entry.getKey()));
-        }
-        for (String s : segments)
-        {
-            output += s;
+            String[] segments = pageSegments.get(template);
+            for (Map.Entry<String, Integer> entry : template.subPages.entrySet())
+            {
+                PageTemplate template1 = theme.templates.get(entry.getKey());
+                if (template1 != null)
+                {
+                    segments[entry.getValue()] = buildPages(template1);
+                }
+                else
+                {
+                    output += "ERROR UNKNOWN TEMPLATE [" + template.tag + "]";
+                }
+            }
+            for (String s : segments)
+            {
+                output += s;
+            }
         }
         return output;
     }

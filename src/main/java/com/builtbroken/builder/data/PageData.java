@@ -17,7 +17,7 @@ import java.util.Map;
  */
 public class PageData extends SegmentedHTML
 {
-    /** Name of the page */
+    /** Display name of the page */
     public String pageName;
     /** Category to display under */
     public String category;
@@ -48,6 +48,8 @@ public class PageData extends SegmentedHTML
      */
     public void load()
     {
+        imgReplaceKeys = new HashMap();
+        linkReplaceKeys = new HashMap();
         //TODO format nano time outputs on debugger
         debug("Loading new Page Data");
 
@@ -133,6 +135,6 @@ public class PageData extends SegmentedHTML
      */
     public String getOutput(String basePath)
     {
-        return basePath + pageName + ".html";
+        return basePath + file.getName().substring(0, file.getName().indexOf(".")) + ".html";
     }
 }
