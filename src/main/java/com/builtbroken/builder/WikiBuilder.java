@@ -82,7 +82,6 @@ public class WikiBuilder
                                         settings.put("outputDirectory", launchSettings.get("outputDirectory"));
                                     }
 
-
                                     File workingDirectory;
                                     File settingsFile;
 
@@ -100,7 +99,7 @@ public class WikiBuilder
                                     }
                                     else
                                     {
-                                        throw new RuntimeException("Batch job '" + entry.getKey() + "' is missing the settingsFile tag");
+                                        settingsFile = Utils.getFile(batchFile.getParentFile(), "./settings.json");
                                     }
 
                                     builders.add(new PageBuilder(logger, workingDirectory, settingsFile, settings, pageTheme, imageData, linkData));
@@ -109,6 +108,15 @@ public class WikiBuilder
                                 {
                                     throw new RuntimeException("Batch job '" + entry.getKey() + "' format is invalid and should be a json object");
                                 }
+                            }
+
+                            if (launchSettings.containsKey("linkData"))
+                            {
+                                //TODO load and parse
+                            }
+                            if (launchSettings.containsKey("imageData"))
+                            {
+                                //TODO load and parse
                             }
 
                             //Run each wiki build one phase at a time to allow data to be shared correctly
