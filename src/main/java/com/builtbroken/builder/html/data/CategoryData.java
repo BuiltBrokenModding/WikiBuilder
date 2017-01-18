@@ -1,4 +1,4 @@
-package com.builtbroken.builder.data;
+package com.builtbroken.builder.html.data;
 
 import com.builtbroken.builder.utils.Utils;
 import com.google.gson.JsonElement;

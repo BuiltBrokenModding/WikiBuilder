@@ -1,7 +1,7 @@
-package com.builtbroken.builder.data;
+package com.builtbroken.builder.html.page;
 
-import com.builtbroken.builder.theme.PageTemplate;
-import com.builtbroken.builder.theme.PageTheme;
+import com.builtbroken.builder.html.theme.PageTemplate;
+import com.builtbroken.builder.html.theme.PageTheme;
 
 import java.io.File;
 import java.util.HashMap;

@@ -1,7 +1,7 @@
 package com.builtbroken.test.data;
 
-import com.builtbroken.builder.data.Page;
-import com.builtbroken.builder.theme.PageTheme;
+import com.builtbroken.builder.html.page.Page;
+import com.builtbroken.builder.html.theme.PageTheme;
 import com.builtbroken.test.html.PageTemplateTest;
 import junit.framework.TestCase;
 import org.junit.Test;

@@ -1,4 +1,4 @@
-package com.builtbroken.builder.theme;
+package com.builtbroken.builder.html.theme;
 
 import com.builtbroken.builder.utils.Utils;
 import com.google.gson.Gson;

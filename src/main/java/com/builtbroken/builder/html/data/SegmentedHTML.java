@@ -1,4 +1,4 @@
-package com.builtbroken.builder.data;
+package com.builtbroken.builder.html.data;
 
 import com.builtbroken.builder.html.parts.JsonProcessorHTML;
 import com.builtbroken.builder.utils.Utils;

@@ -1,5 +1,6 @@
-package com.builtbroken.builder.data;
+package com.builtbroken.builder.html.page;
 
+import com.builtbroken.builder.html.data.SegmentedHTML;
 import com.builtbroken.builder.utils.Utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;

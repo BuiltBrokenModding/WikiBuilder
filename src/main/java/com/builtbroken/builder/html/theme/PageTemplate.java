@@ -1,6 +1,6 @@
-package com.builtbroken.builder.theme;
+package com.builtbroken.builder.html.theme;
 
-import com.builtbroken.builder.data.SegmentedHTML;
+import com.builtbroken.builder.html.data.SegmentedHTML;
 
 import java.io.File;
 

@@ -1,12 +1,12 @@
 package com.builtbroken.builder.html;
 
-import com.builtbroken.builder.data.CategoryData;
-import com.builtbroken.builder.data.Page;
-import com.builtbroken.builder.data.PageData;
+import com.builtbroken.builder.html.data.CategoryData;
+import com.builtbroken.builder.html.page.Page;
+import com.builtbroken.builder.html.page.PageData;
 import com.builtbroken.builder.html.parts.HTMLPartHeader;
 import com.builtbroken.builder.html.parts.HTMLPartParagraph;
 import com.builtbroken.builder.html.parts.JsonProcessorHTML;
-import com.builtbroken.builder.theme.PageTheme;
+import com.builtbroken.builder.html.theme.PageTheme;
 import com.builtbroken.builder.utils.Utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
