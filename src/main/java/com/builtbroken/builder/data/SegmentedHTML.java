@@ -118,27 +118,27 @@ public class SegmentedHTML
      */
     protected boolean processInjectionTag(String key, int index, String original)
     {
-        if (key.startsWith("data"))
+        if (key.startsWith("data:"))
         {
-            injectionTags.put(key, index);
+            injectionTags.put(key.substring(5, key.length()), index);
             return true;
         }
-        else if (key.startsWith("page"))
+        else if (key.startsWith("page:"))
         {
-            subPages.put(key, index);
+            subPages.put(key.substring(5, key.length()), index);
             return true;
         }
         else if (key.startsWith("pageref:"))
         {
-            pageReferences.put(key.substring(key.indexOf(":") + 1), index);
+            pageReferences.put(key.substring(8, key.length()), index);
         }
         else if (key.startsWith("link:"))
         {
-            pageLinks.put(key.substring(key.indexOf(":") + 1), index);
+            pageLinks.put(key.substring(5, key.length()), index);
         }
         else if (key.startsWith("img:"))
         {
-            imgReferences.put(key.substring(key.indexOf(":") + 1), index);
+            imgReferences.put(key.substring(4, key.length()), index);
         }
         return false;
     }
