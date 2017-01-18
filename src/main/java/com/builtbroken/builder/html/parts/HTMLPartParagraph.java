@@ -16,6 +16,6 @@ public class HTMLPartParagraph extends HTMLPart
     @Override
     public String process(JsonElement element)
     {
-        return "<p>" + element + "</p>";
+        return "<p>" + element.getAsString() + "</p>";
     }
 }

@@ -80,9 +80,54 @@ public class PageBuilder
         {
             outputDirectory = new File(workingDirectory, "output");
         }
+        if (launchSettings.containsKey("theme"))
+        {
+            File file = Utils.getFile(workingDirectory, launchSettings.get("theme"));
+            if (file.isDirectory())
+            {
+                file = new File(file, "theme.json");
+            }
+            pageTheme = new PageTheme(file);
+            logger.info("Theme is being set by program arguments! Theme in settings file will not be used.");
+            logger.info("Theme : " + pageTheme.themeFile);
+        }
         logger.info("Output directory set to " + outputDirectory);
     }
 
+    /**
+     * Called to run the page building
+     * process from start to finish.
+     */
+    public void run()
+    {
+        logger.info("Parsing settings....");
+        parseSettings();
+        logger.info("Done....\n\n");
+
+        logger.info("Loading HTML templates....");
+        loadHTML();
+        logger.info("Done....\n\n");
+
+        logger.info("Loading wiki data....");
+        loadWikiData();
+        logger.info("Done....\n\n");
+
+        logger.info("Parsing wiki data....");
+        parseWikiData();
+        logger.info("Done....\n\n");
+
+        logger.info("Building wiki data....");
+        buildWikiData();
+        logger.info("Done....\n\n");
+
+        logger.info("Building pages....");
+        buildPages();
+        logger.info("Done....\n\n");
+    }
+
+    /**
+     * Called to parse the settings file
+     */
     public void parseSettings()
     {
         logger.info("Loading settings for wiki building form " + settingsFile);
@@ -141,14 +186,22 @@ public class PageBuilder
                 {
                     throw new RuntimeException("Missing pages location data from " + settingsFile);
                 }
-                if (object.has("theme"))
+                if (pageTheme == null)
                 {
-                    pageTheme = new PageTheme(Utils.getFile(workingDirectory, object.getAsJsonPrimitive("theme").getAsString()));
-                    logger.info("Theme : " + pageTheme.themeFile);
-                }
-                else
-                {
-                    throw new RuntimeException("Missing theme data from " + settingsFile);
+                    if (object.has("theme"))
+                    {
+                        File file = Utils.getFile(workingDirectory, object.getAsJsonPrimitive("theme").getAsString());
+                        if (file.isDirectory())
+                        {
+                            file = new File(file, "theme.json");
+                        }
+                        pageTheme = new PageTheme(file);
+                        logger.info("Theme : " + pageTheme.themeFile);
+                    }
+                    else
+                    {
+                        throw new RuntimeException("Missing theme data from " + settingsFile);
+                    }
                 }
             }
             else
@@ -331,6 +384,7 @@ public class PageBuilder
 
             //Inject page main content
             page.inject("wikiContentHtml", data.buildHTML());
+            page.inject("PageName", data.pageName);
             //Inject page data
             page.inject(data.data);
             //Inject global data

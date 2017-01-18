@@ -67,7 +67,7 @@ public class HTMLPartHeader extends HTMLPart
                 }
                 return "<h" + size + ">" + text + "</h" + size + ">";
             }
-            return "<h2>" + value + "</h2>";
+            return "<h2>" + value.getAsString() + "</h2>";
         }
         catch (Exception e)
         {

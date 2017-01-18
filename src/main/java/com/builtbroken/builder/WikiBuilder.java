@@ -69,33 +69,7 @@ public class WikiBuilder
         logger.info("Working folder :" + workingDirector);
         logger.info("Settings file  :" + settingsFile);
 
-        logger.info("Creating page builder....");
-        PageBuilder builder = new PageBuilder(logger, workingDirector, settingsFile, launchSettings);
-
-
-        logger.info("Parsing settings....");
-        builder.parseSettings();
-        logger.info("Done....\n\n");
-
-        logger.info("Loading HTML templates....");
-        builder.loadHTML();
-        logger.info("Done....\n\n");
-
-        logger.info("Loading wiki data....");
-        builder.loadWikiData();
-        logger.info("Done....\n\n");
-
-        logger.info("Parsing wiki data....");
-        builder.parseWikiData();
-        logger.info("Done....\n\n");
-
-        logger.info("Building wiki data....");
-        builder.buildWikiData();
-        logger.info("Done....\n\n");
-
-        logger.info("Building pages....");
-        builder.buildPages();
-        logger.info("Done....\n\n");
+        new PageBuilder(logger, workingDirector, settingsFile, launchSettings).run();
 
         //End of program pause
         if (!launchSettings.containsKey("noConfirm"))
