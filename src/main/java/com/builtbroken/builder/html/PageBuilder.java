@@ -1,6 +1,8 @@
 package com.builtbroken.builder.html;
 
 import com.builtbroken.builder.html.data.CategoryData;
+import com.builtbroken.builder.html.data.ImageData;
+import com.builtbroken.builder.html.data.LinkData;
 import com.builtbroken.builder.html.page.Page;
 import com.builtbroken.builder.html.page.PageData;
 import com.builtbroken.builder.html.parts.HTMLPartHeader;
@@ -55,10 +57,9 @@ public class PageBuilder
     public List<PageData> loadedWikiData;
     /** Actual generated pages in data form */
     public List<Page> generatedPages;
-    /** List of used images */
-    public List<String> usedImages;
-    /** Map of image keys to paths on disk (relative to workspace) */
-    public HashMap<String, String> images;
+
+    public ImageData imageData;
+    public LinkData linkData;
 
     /**
      * Creates a new page builder instance
@@ -67,11 +68,13 @@ public class PageBuilder
      * @param settingsFile     - location of the primiary settings file
      * @param launchSettings   - launch arguments, overrides settings file in some cases and changes logic
      */
-    public PageBuilder(Logger logger, File workingDirectory, File settingsFile, HashMap<String, String> launchSettings)
+    public PageBuilder(Logger logger, File workingDirectory, File settingsFile, HashMap<String, String> launchSettings, ImageData imageData, LinkData linkData)
     {
         this.logger = logger;
         this.workingDirectory = workingDirectory;
         this.settingsFile = settingsFile;
+        this.imageData = imageData;
+        this.linkData = linkData;
         if (launchSettings.containsKey("outputDirectory"))
         {
             outputDirectory = Utils.getFile(workingDirectory, launchSettings.get("outputDirectory"));
@@ -284,9 +287,40 @@ public class PageBuilder
      */
     public void parseWikiData()
     {
+        logger.info("Loading and parsing data from pages");
         for (PageData data : loadedWikiData)
         {
             data.load();
+        }
+        logger.info("Collecting link and image data from pages");
+        for (PageData data : loadedWikiData)
+        {
+            for (Map.Entry<String, String> entry : data.linkReplaceKeys.entrySet())
+            {
+                final String key = entry.getKey().toLowerCase();
+                if (!linkData.linkReplaceKeys.containsKey(key))
+                {
+                    linkData.linkReplaceKeys.put(key, "<a href=\"" + data.getOutput(vars.get("outputPath")) + "\">" + entry.getValue() + "</a>");
+                }
+                else
+                {
+                    throw new RuntimeException("Duplicate link key[" + entry.getKey() + "] was found for page [" + data.pageName + "] key is linked to " + linkData.linkReplaceKeys.get(key));
+                }
+            }
+            for (Map.Entry<String, String> entry : data.imgReplaceKeys.entrySet())
+            {
+                final String key = entry.getKey().toLowerCase();
+                if (!imageData.imageReplaceKeys.containsKey(key))
+                {
+                    String path = vars.get("imagePath") + entry.getValue();
+                    imageData.imageReplaceKeys.put(key, "<img src=\"" + entry.getValue() + "\">");
+                    imageData.images.put(key, path);
+                }
+                else
+                {
+                    throw new RuntimeException("Duplicate image key[" + entry.getKey() + "] was found for page [" + data.pageName + "] key is linked to " + imageData.imageReplaceKeys.get(key));
+                }
+            }
         }
     }
 
@@ -296,42 +330,6 @@ public class PageBuilder
      */
     public void buildWikiData()
     {
-        usedImages = new ArrayList();
-        images = new HashMap();
-
-        //Build up the map of replacement data
-        HashMap<String, String> linkReplaceKeys = new HashMap();
-        HashMap<String, String> imageReplaceKeys = new HashMap();
-        logger.info("Collecting link and image data");
-        for (PageData data : loadedWikiData)
-        {
-            for (Map.Entry<String, String> entry : data.linkReplaceKeys.entrySet())
-            {
-                final String key = entry.getKey().toLowerCase();
-                if (!linkReplaceKeys.containsKey(key))
-                {
-                    linkReplaceKeys.put(key, "<a href=\"" + data.getOutput(vars.get("outputPath")) + "\">" + entry.getValue() + "</a>");
-                }
-                else
-                {
-                    throw new RuntimeException("Duplicate link key[" + entry.getKey() + "] was found for page [" + data.pageName + "] key is linked to " + linkReplaceKeys.get(key));
-                }
-            }
-            for (Map.Entry<String, String> entry : data.imgReplaceKeys.entrySet())
-            {
-                final String key = entry.getKey().toLowerCase();
-                if (!imageReplaceKeys.containsKey(key))
-                {
-                    String path = vars.get("imagePath") + entry.getValue();
-                    imageReplaceKeys.put(key, "<img src=\"" + entry.getValue() + "\">");
-                    images.put(key, path);
-                }
-                else
-                {
-                    throw new RuntimeException("Duplicate image key[" + entry.getKey() + "] was found for page [" + data.pageName + "] key is linked to " + imageReplaceKeys.get(key));
-                }
-            }
-        }
         logger.info("Injecting link and image data");
         //Loop all pages to replace data
         for (PageData data : loadedWikiData)
@@ -339,9 +337,9 @@ public class PageBuilder
             for (Map.Entry<String, Integer> entry : data.pageLinks.entrySet())
             {
                 final String key = entry.getKey().toLowerCase();
-                if (linkReplaceKeys.containsKey(key))
+                if (linkData.linkReplaceKeys.containsKey(key))
                 {
-                    data.htmlSegments[entry.getValue()] = linkReplaceKeys.get(key);
+                    data.htmlSegments[entry.getValue()] = linkData.linkReplaceKeys.get(key);
                 }
                 else
                 {
@@ -351,11 +349,11 @@ public class PageBuilder
             for (Map.Entry<String, Integer> entry : data.imgReferences.entrySet())
             {
                 final String key = entry.getKey().toLowerCase();
-                if (imageReplaceKeys.containsKey(key))
+                if (imageData.imageReplaceKeys.containsKey(key))
                 {
-                    data.htmlSegments[entry.getValue()] = imageReplaceKeys.get(key);
+                    data.htmlSegments[entry.getValue()] = imageData.imageReplaceKeys.get(key);
                     //Keep track of what images we have used
-                    usedImages.add(key);
+                    imageData.usedImages.add(key);
                 }
                 else
                 {
@@ -420,9 +418,9 @@ public class PageBuilder
         if (!vars.containsKey("doNotCopyImages"))
         {
             logger.info("Copying images to output...");
-            for (Map.Entry<String, String> entry : images.entrySet())
+            for (Map.Entry<String, String> entry : imageData.images.entrySet())
             {
-                if (usedImages.contains(entry.getKey()))
+                if (imageData.usedImages.contains(entry.getKey()))
                 {
                     final File file = new File(imageDirectory, entry.getValue());
                     if (file.exists())

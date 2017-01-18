@@ -26,50 +26,59 @@ public class WikiBuilder
         logger.info("Wiki-Builder has been started...");
         logger.info("Parsing arguments...");
 
+        //TODO implement GUI
         //Load arguments
         HashMap<String, String> launchSettings = loadArgs(args);
 
-        //Vars
-        File workingDirector = null;
-        File settingsFile = null;
+        if (launchSettings.containsKey("batchFile"))
+        {
 
-        //Use settings
-        if (launchSettings.containsKey("workingFolder"))
-        {
-            workingDirector = Utils.getFile(new File("."), launchSettings.get("workingFolder"));
         }
-        if (workingDirector == null)
+        else
         {
-            workingDirector = new File(".");
-        }
-        if (!workingDirector.exists())
-        {
-            workingDirector.mkdirs();
-        }
+            //Vars
+            File workingDirector = null;
+            File settingsFile = null;
 
-        if (launchSettings.containsKey("settingsFile"))
-        {
-            settingsFile = Utils.getFile(workingDirector, launchSettings.get("settingsFile"));
-        }
+            //Get our working folder
+            if (launchSettings.containsKey("workingFolder"))
+            {
+                workingDirector = Utils.getFile(new File("."), launchSettings.get("workingFolder"));
+            }
+            if (workingDirector == null)
+            {
+                workingDirector = new File(".");
+            }
+            if (!workingDirector.exists())
+            {
+                workingDirector.mkdirs();
+            }
 
-        if (settingsFile == null)
-        {
-            settingsFile = new File(workingDirector, SETTINGS_FILE_NAME);
-        }
-        if (!settingsFile.getParentFile().exists())
-        {
-            settingsFile.getParentFile().mkdirs();
-        }
-        if (!settingsFile.exists())
-        {
-            throw new RuntimeException("Settings file does not exist at location: " + settingsFile);
-        }
+            //Get our settings file
+            if (launchSettings.containsKey("settingsFile"))
+            {
+                settingsFile = Utils.getFile(workingDirector, launchSettings.get("settingsFile"));
+            }
+            if (settingsFile == null)
+            {
+                settingsFile = new File(workingDirector, SETTINGS_FILE_NAME);
+            }
+            if (!settingsFile.getParentFile().exists())
+            {
+                settingsFile.getParentFile().mkdirs();
+            }
+            if (!settingsFile.exists())
+            {
+                throw new RuntimeException("Settings file does not exist at location: " + settingsFile);
+            }
 
-        //Output settings
-        logger.info("Working folder :" + workingDirector);
-        logger.info("Settings file  :" + settingsFile);
+            //Output settings
+            logger.info("Working folder :" + workingDirector);
+            logger.info("Settings file  :" + settingsFile);
 
-        new PageBuilder(logger, workingDirector, settingsFile, launchSettings).run();
+            //Start process
+            new PageBuilder(logger, workingDirector, settingsFile, launchSettings).run();
+        }
 
         //End of program pause
         if (!launchSettings.containsKey("noConfirm"))
