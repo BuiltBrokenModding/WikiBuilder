@@ -15,6 +15,8 @@ public final class JsonProcessorHTML
     /** Map of json keys to parts that handle processing */
     public static HashMap<String, HTMLPart> parts = new HashMap();
 
+    private static boolean init = false;
+
     /**
      * Called to register parts
      *
@@ -24,6 +26,16 @@ public final class JsonProcessorHTML
     public static void registerPart(String tag, HTMLPart part)
     {
         parts.put(tag.toLowerCase(), part);
+    }
+
+    public static void init()
+    {
+        if (!init)
+        {
+            init = true;
+            JsonProcessorHTML.registerPart("h", new HTMLPartHeader());
+            JsonProcessorHTML.registerPart("p", new HTMLPartParagraph());
+        }
     }
 
     /**
@@ -36,11 +48,27 @@ public final class JsonProcessorHTML
      */
     public static String process(String tag, JsonElement value)
     {
+        if (!init)
+        {
+            init();
+        }
         String key = tag.replaceAll("[^A-Za-z]", "");
         if (parts.containsKey(key.toLowerCase()))
         {
             return parts.get(key.toLowerCase()).process(value);
         }
         return "<p>UnknownTag: " + value + " </p>";
+    }
+
+    /**
+     * Creates a link from the input data
+     *
+     * @param text - display text for the user
+     * @param url  - target location of the link
+     * @return string containing the HTML link code
+     */
+    public static String newLink(String text, String url)
+    {
+        return "<a href=\"" + url + "\">" + text + "</a>";
     }
 }

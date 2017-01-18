@@ -3,9 +3,6 @@ package com.builtbroken.builder;
 import com.builtbroken.builder.html.PageBuilder;
 import com.builtbroken.builder.html.data.ImageData;
 import com.builtbroken.builder.html.data.LinkData;
-import com.builtbroken.builder.html.parts.HTMLPartHeader;
-import com.builtbroken.builder.html.parts.HTMLPartParagraph;
-import com.builtbroken.builder.html.parts.JsonProcessorHTML;
 import com.builtbroken.builder.html.theme.PageTheme;
 import com.builtbroken.builder.utils.Utils;
 import com.google.gson.JsonElement;
@@ -85,6 +82,8 @@ public class WikiBuilder
                                     File workingDirectory;
                                     File settingsFile;
 
+                                    //TODO add data files to batch file so program arguments can be reduced
+
                                     if (object.has("directory"))
                                     {
                                         workingDirectory = Utils.getFile(batchFile.getParentFile(), object.getAsJsonPrimitive("directory").getAsString());
@@ -110,13 +109,37 @@ public class WikiBuilder
                                 }
                             }
 
-                            if (launchSettings.containsKey("linkData"))
+                            if (launchSettings.containsKey("linkDataFile"))
                             {
-                                //TODO load and parse
+                                String value = launchSettings.get("linkDataFile");
+                                if (value.contains(","))
+                                {
+                                    String[] split = value.split(",");
+                                    for (String s : split)
+                                    {
+                                        linkData.loadDataFromFile(Utils.getFile(batchFile.getParentFile(), s));
+                                    }
+                                }
+                                else
+                                {
+                                    linkData.loadDataFromFile(Utils.getFile(batchFile.getParentFile(), value));
+                                }
                             }
-                            if (launchSettings.containsKey("imageData"))
+                            if (launchSettings.containsKey("imageDataFile"))
                             {
-                                //TODO load and parse
+                                String value = launchSettings.get("imageDataFile");
+                                if (value.contains(","))
+                                {
+                                    String[] split = value.split(",");
+                                    for (String s : split)
+                                    {
+                                        imageData.loadDataFromFile(Utils.getFile(batchFile.getParentFile(), s));
+                                    }
+                                }
+                                else
+                                {
+                                    imageData.loadDataFromFile(Utils.getFile(batchFile.getParentFile(), value));
+                                }
                             }
 
                             //Run each wiki build one phase at a time to allow data to be shared correctly
@@ -126,11 +149,6 @@ public class WikiBuilder
                             logger.info("\tLoading theme");
                             pageTheme.load();
                             pageTheme.loadTemplates();
-                            logger.info("\tDone");
-
-                            logger.info("\tLoading HTML processors");
-                            JsonProcessorHTML.registerPart("h", new HTMLPartHeader());
-                            JsonProcessorHTML.registerPart("p", new HTMLPartParagraph());
                             logger.info("\tDone");
 
                             builders.forEach(PageBuilder::parseSettings);
@@ -215,6 +233,7 @@ public class WikiBuilder
                 logger.info("Theme : " + pageTheme.themeFile);
             }
             PageBuilder builder = new PageBuilder(logger, workingDirector, settingsFile, launchSettings, pageTheme, new ImageData(), new LinkData());
+            builder.run();
         }
 
         //End of program pause

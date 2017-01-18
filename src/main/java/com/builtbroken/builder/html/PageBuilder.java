@@ -5,9 +5,6 @@ import com.builtbroken.builder.html.data.ImageData;
 import com.builtbroken.builder.html.data.LinkData;
 import com.builtbroken.builder.html.page.Page;
 import com.builtbroken.builder.html.page.PageData;
-import com.builtbroken.builder.html.parts.HTMLPartHeader;
-import com.builtbroken.builder.html.parts.HTMLPartParagraph;
-import com.builtbroken.builder.html.parts.JsonProcessorHTML;
 import com.builtbroken.builder.html.theme.PageTheme;
 import com.builtbroken.builder.utils.Utils;
 import com.google.gson.Gson;
@@ -486,11 +483,6 @@ public class PageBuilder
         logger.info("\tLoading theme");
         pageTheme.load();
         pageTheme.loadTemplates();
-        logger.info("\tDone");
-
-        logger.info("\tLoading HTML processors");
-        JsonProcessorHTML.registerPart("h", new HTMLPartHeader());
-        JsonProcessorHTML.registerPart("p", new HTMLPartParagraph());
         logger.info("\tDone");
     }
 }
