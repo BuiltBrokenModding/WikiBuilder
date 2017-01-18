@@ -46,7 +46,7 @@ public class PageTheme
      * the pages call {@link #loadTemplates()} after
      * calling this.
      */
-    public void load(File workingDirectory)
+    public void load()
     {
         //Parse settings file
         if (themeFile.exists() && themeFile.isFile())

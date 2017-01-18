@@ -68,13 +68,14 @@ public class PageBuilder
      * @param settingsFile     - location of the primiary settings file
      * @param launchSettings   - launch arguments, overrides settings file in some cases and changes logic
      */
-    public PageBuilder(Logger logger, File workingDirectory, File settingsFile, HashMap<String, String> launchSettings, ImageData imageData, LinkData linkData)
+    public PageBuilder(Logger logger, File workingDirectory, File settingsFile, HashMap<String, String> launchSettings, PageTheme theme, ImageData imageData, LinkData linkData)
     {
         this.logger = logger;
         this.workingDirectory = workingDirectory;
         this.settingsFile = settingsFile;
         this.imageData = imageData;
         this.linkData = linkData;
+        this.pageTheme = theme;
         if (launchSettings.containsKey("outputDirectory"))
         {
             outputDirectory = Utils.getFile(workingDirectory, launchSettings.get("outputDirectory"));
@@ -82,17 +83,6 @@ public class PageBuilder
         else
         {
             outputDirectory = new File(workingDirectory, "output");
-        }
-        if (launchSettings.containsKey("theme"))
-        {
-            File file = Utils.getFile(workingDirectory, launchSettings.get("theme"));
-            if (file.isDirectory())
-            {
-                file = new File(file, "theme.json");
-            }
-            pageTheme = new PageTheme(file);
-            logger.info("Theme is being set by program arguments! Theme in settings file will not be used.");
-            logger.info("Theme : " + pageTheme.themeFile);
         }
         logger.info("Output directory set to " + outputDirectory);
     }
@@ -103,6 +93,7 @@ public class PageBuilder
      */
     public void run()
     {
+        //If the following is changed make sure to update the batch processor
         logger.info("Parsing settings....");
         parseSettings();
         logger.info("Done....\n\n");
@@ -491,8 +482,9 @@ public class PageBuilder
      */
     public void loadHTML()
     {
+        //If changed update batch file
         logger.info("\tLoading theme");
-        pageTheme.load(workingDirectory);
+        pageTheme.load();
         pageTheme.loadTemplates();
         logger.info("\tDone");
 
