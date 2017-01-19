@@ -14,10 +14,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Main logic class for building all pages
@@ -159,9 +156,23 @@ public class PageBuilder
                 }
                 if (object.has("categories"))
                 {
-                    String value = object.getAsJsonPrimitive("categories").getAsString();
-                    categoryFile = Utils.getFile(workingDirectory, value);
-                    logger.info("Category File: " + imageDirectory);
+                    logger.info("Categories:");
+                    Set<Map.Entry<String, JsonElement>> entrySet = object.get("categories").getAsJsonObject().entrySet();
+                    for (Map.Entry<String, JsonElement> entry : entrySet)
+                    {
+                        JsonObject catEntry = entry.getValue().getAsJsonObject();
+                        CategoryData categoryData = new CategoryData(entry.getKey().toLowerCase());
+                        categoryData.displayName = catEntry.getAsJsonPrimitive("text").getAsString();
+                        if(catEntry.has("page"))
+                        {
+                            categoryData.pageID = catEntry.getAsJsonPrimitive("page").getAsString();
+                        }
+                        if(catEntry.has("parent"))
+                        {
+                            categoryData.parent = catEntry.getAsJsonPrimitive("parent").getAsString();
+                        }
+                    }
+                    logger.info("");
                 }
                 else
                 {
@@ -212,42 +223,10 @@ public class PageBuilder
     public void loadWikiData()
     {
         loadedWikiData = new ArrayList();
-        if (categoryFile.exists() && categoryFile.isFile())
-        {
-            JsonElement element = Utils.toJsonElement(categoryFile);
-
-            if (element.isJsonObject())
-            {
-                JsonObject object = element.getAsJsonObject();
-                if (object.has("categories"))
-                {
-                    logger.info("Categories:");
-                    categoryData = new ArrayList();
-                    Gson gson = new Gson();
-                    Map<String, String> map = new HashMap();
-                    map = (Map<String, String>) gson.fromJson(object.get("categories"), map.getClass());
-                    for (Map.Entry<String, String> entry : map.entrySet())
-                    {
-                        logger.info("\t" + entry.getKey() + " --> " + entry.getValue());
-                        CategoryData data = new CategoryData(entry.getKey(), entry.getValue());
-                        data.load(workingDirectory);
-                    }
-                }
-                //Recursively load files
-                logger.info("");
-                logger.info("\tSearching for pages to load...");
-                getFiles(pageDirectory, loadedWikiData);
-                logger.info("\tDone...");
-            }
-            else
-            {
-                throw new RuntimeException("File does not contain a json object [" + categoryFile + "]");
-            }
-        }
-        else
-        {
-            throw new RuntimeException("File is invalid for reading or missing [" + categoryFile + "]");
-        }
+        //Recursively load files
+        logger.info("\tSearching for pages to load...");
+        getFiles(pageDirectory, loadedWikiData);
+        logger.info("\tDone...");
     }
 
     private void getFiles(File folder, List<PageData> wikiPages)
@@ -319,6 +298,7 @@ public class PageBuilder
     public void buildWikiData()
     {
         logger.info("Injecting link and image data");
+
         //Loop all pages to replace data
         for (PageData data : loadedWikiData)
         {

@@ -1,10 +1,5 @@
 package com.builtbroken.builder.html.data;
 
-import com.builtbroken.builder.utils.Utils;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,8 +14,6 @@ public class CategoryData
 {
     /** Name of the category */
     public final String name;
-    /** Location of the category data on disk */
-    public final String fileLocation;
 
     /** Pages this category contains */
     public List<String> pages;
@@ -28,41 +21,12 @@ public class CategoryData
     public String displayName;
     /** Page the user goes to when clicking the category name */
     public String pageID;
+    /** Parent category */
+    public String parent;
 
-    public CategoryData(String name, String fileLocation)
+    public CategoryData(String name)
     {
         this.name = name;
-        this.fileLocation = fileLocation;
-    }
-
-    public void load(File workingDirectory)
-    {
         pages = new ArrayList();
-        File file = Utils.getFile(workingDirectory, fileLocation);
-        if (file.exists() && file.isFile())
-        {
-            JsonElement element = Utils.toJsonElement(file);
-
-            if (element.isJsonObject())
-            {
-                JsonObject object = element.getAsJsonObject();
-                if (object.has("name"))
-                {
-                    displayName = object.getAsJsonPrimitive("name").getAsString();
-                }
-                if (object.has("page"))
-                {
-                    pageID = object.getAsJsonPrimitive("page").getAsString();
-                }
-            }
-            else
-            {
-                throw new RuntimeException("File does not contain a json object [" + file + "]");
-            }
-        }
-        else
-        {
-            throw new RuntimeException("File is invalid for reading or missing [" + file + "]");
-        }
     }
 }
