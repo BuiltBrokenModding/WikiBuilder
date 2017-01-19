@@ -46,7 +46,7 @@ public class PageBuilder
     public PageTheme pageTheme;
 
     /** All categories for the wiki */
-    public List<CategoryData> categoryData;
+    public HashMap<String, CategoryData> categoryData;
     /** All pages for the wiki */
     public List<PageData> loadedWikiData;
     /** Actual generated pages in data form */
@@ -157,20 +157,22 @@ public class PageBuilder
                 if (object.has("categories"))
                 {
                     logger.info("Categories:");
+                    categoryData = new HashMap();
                     Set<Map.Entry<String, JsonElement>> entrySet = object.get("categories").getAsJsonObject().entrySet();
                     for (Map.Entry<String, JsonElement> entry : entrySet)
                     {
                         JsonObject catEntry = entry.getValue().getAsJsonObject();
                         CategoryData categoryData = new CategoryData(entry.getKey().toLowerCase());
                         categoryData.displayName = catEntry.getAsJsonPrimitive("text").getAsString();
-                        if(catEntry.has("page"))
+                        if (catEntry.has("page"))
                         {
                             categoryData.pageID = catEntry.getAsJsonPrimitive("page").getAsString();
                         }
-                        if(catEntry.has("parent"))
+                        if (catEntry.has("parent"))
                         {
                             categoryData.parent = catEntry.getAsJsonPrimitive("parent").getAsString();
                         }
+                        this.categoryData.put(entry.getKey().toLowerCase(), categoryData);
                     }
                     logger.info("");
                 }
@@ -298,10 +300,10 @@ public class PageBuilder
     public void buildWikiData()
     {
         logger.info("Injecting link and image data");
-
         //Loop all pages to replace data
         for (PageData data : loadedWikiData)
         {
+            //Replace link keys with link HTML code
             for (Map.Entry<String, Integer> entry : data.pageLinks.entrySet())
             {
                 final String key = entry.getKey().toLowerCase();
@@ -314,6 +316,7 @@ public class PageBuilder
                     System.out.println("Warning: " + data.pageName + " is missing a link reference for " + entry.getKey());
                 }
             }
+            //Replace image keys with image HTML code
             for (Map.Entry<String, Integer> entry : data.imgReferences.entrySet())
             {
                 final String key = entry.getKey().toLowerCase();
@@ -328,8 +331,32 @@ public class PageBuilder
                     System.out.println("Warning: " + data.pageName + " is missing an image reference for " + entry.getKey());
                 }
             }
+            //Map page to category
+            if(data.category != null && categoryData.containsKey(data.category.toLowerCase()))
+            {
+                categoryData.get(data.category.toLowerCase()).pages.add(data);
+            }
         }
-        //TODO generate category footer
+
+        //Find children categories
+        List<CategoryData> children = new ArrayList();
+        for(CategoryData d : categoryData.values())
+        {
+            if(d.parent != null && categoryData.containsKey(d.parent.toLowerCase()))
+            {
+                children.add(d);
+            }
+        }
+        //Removed children from main list
+        for(CategoryData d : children)
+        {
+            categoryData.remove(d);
+        }
+        //Map children to parents
+        for(CategoryData d : children)
+        {
+            categoryData.get(d.parent.toLowerCase()).subCategories.add(d);
+        }
     }
 
     /**
@@ -342,6 +369,11 @@ public class PageBuilder
         logger.info("Creating page objects and injecting data");
         //Inject missing data into
         generatedPages = new ArrayList();
+        for(CategoryData categoryData : this.categoryData.values())
+        {
+
+        }
+
         for (PageData data : loadedWikiData)
         {
             Page page = new Page();

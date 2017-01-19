@@ -1,5 +1,7 @@
 package com.builtbroken.builder.html.data;
 
+import com.builtbroken.builder.html.page.PageData;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +18,9 @@ public class CategoryData
     public final String name;
 
     /** Pages this category contains */
-    public List<String> pages;
+    public List<PageData> pages;
+    /** Sub categories that are appended to this. */
+    public List<CategoryData> subCategories;
     /** Name the user sees for the category */
     public String displayName;
     /** Page the user goes to when clicking the category name */
@@ -28,5 +32,6 @@ public class CategoryData
     {
         this.name = name;
         pages = new ArrayList();
+        subCategories = new ArrayList();
     }
 }

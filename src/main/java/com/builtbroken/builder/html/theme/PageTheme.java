@@ -20,14 +20,25 @@ public class PageTheme
     /** Location of where the theme is located */
     /** Name of the theme */
     public String name;
-    /** Main template class */
-    public String mainTemplate;
     /** File containing settings for the theme */
     public File themeFile;
     /** Folder containing page templates */
     public File pageDirectory;
-
+    /** Loaded templates. */
     public HashMap<String, PageTemplate> templates;
+
+    /** Main template class */
+    public PageTemplate mainTemplate;
+
+    /** Categories template */
+    public PageTemplate categoryTemplate;
+    /** Category entry template */
+    public PageTemplate categoryEntryTemplate;
+    /** Category item template */
+    public PageTemplate categoryItemTemplate;
+    /** Category entry template for categories with sub categories */
+    public PageTemplate categoryParentTemplate;
+
 
     /**
      * Creates a new PageTheme instance.
@@ -90,13 +101,45 @@ public class PageTheme
                 {
                     throw new RuntimeException("File does not define the theme's name [" + themeFile + "]");
                 }
-                if (object.has("main_template"))
+                if (templates.containsKey("main_template"))
                 {
-                    mainTemplate = object.getAsJsonPrimitive("main_template").getAsString();
+                    mainTemplate = templates.get("main_template");
                 }
                 else
                 {
                     throw new RuntimeException("File does not define a main template for the theme [" + themeFile + "]");
+                }
+                if (templates.containsKey("category_template"))
+                {
+                    categoryTemplate = templates.get("category_template");
+                }
+                else
+                {
+                    throw new RuntimeException("File does not define a category template for the theme [" + themeFile + "]");
+                }
+                if (templates.containsKey("category_entry"))
+                {
+                    categoryEntryTemplate = templates.get("category_entry");
+                }
+                else
+                {
+                    throw new RuntimeException("File does not define a category entry template for the theme [" + themeFile + "]");
+                }
+                if (templates.containsKey("category_item"))
+                {
+                    categoryItemTemplate = templates.get("category_item");
+                }
+                else
+                {
+                    throw new RuntimeException("File does not define a category item template for the theme [" + themeFile + "]");
+                }
+                if (templates.containsKey("category_parent"))
+                {
+                    categoryParentTemplate = templates.get("category_parent");
+                }
+                else
+                {
+                    throw new RuntimeException("File does not define a category parent template for the theme [" + themeFile + "]");
                 }
             }
             else
