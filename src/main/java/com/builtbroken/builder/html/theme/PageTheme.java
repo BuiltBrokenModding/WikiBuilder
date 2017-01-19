@@ -29,7 +29,7 @@ public class PageTheme
     /** Folder containing page templates */
     public File pageDirectory;
     /** Loaded templates. */
-    public HashMap<String, PageTemplate> templates;
+    private HashMap<String, PageTemplate> templates;
 
     /** Main template class */
     public PageTemplate mainTemplate;
@@ -237,16 +237,16 @@ public class PageTheme
 
         if (!child)
         {
-            htmlSegments = categoryTemplate.htmlSegments.clone();
-            SegmentedHTML.injectData(htmlSegments, categoryTemplate.injectionTags, "categoryName", categoryData.displayName);
-            SegmentedHTML.injectData(htmlSegments, categoryTemplate.injectionTags, "categoryItems", items);
-            SegmentedHTML.injectData(htmlSegments, categoryTemplate.injectionTags, vars);
+            htmlSegments = categoryEntryTemplate.htmlSegments.clone();
+            SegmentedHTML.injectData(htmlSegments, categoryEntryTemplate.injectionTags, "categoryName", categoryData.displayName);
+            SegmentedHTML.injectData(htmlSegments, categoryEntryTemplate.injectionTags, "categoryItems", items);
+            SegmentedHTML.injectData(htmlSegments, categoryEntryTemplate.injectionTags, vars);
         }
         else
         {
             htmlSegments = categoryChildTemplate.htmlSegments.clone();
             SegmentedHTML.injectData(htmlSegments, categoryChildTemplate.injectionTags, "categoryName", categoryData.displayName);
-            SegmentedHTML.injectData(htmlSegments, categoryChildTemplate.injectionTags, "categoryItems", items);
+            SegmentedHTML.injectData(htmlSegments, categoryChildTemplate.injectionTags, "categories", items);
             SegmentedHTML.injectData(htmlSegments, categoryChildTemplate.injectionTags, vars);
         }
         //Append to items HTML
@@ -255,5 +255,15 @@ public class PageTheme
             html += s;
         }
         return html;
+    }
+
+    public PageTemplate getTemplate(String key)
+    {
+        return templates.get(key.toLowerCase());
+    }
+
+    public void addTemplate(PageTemplate template)
+    {
+        templates.put(template.tag.toLowerCase(), template);
     }
 }

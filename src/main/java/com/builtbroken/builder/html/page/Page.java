@@ -50,7 +50,7 @@ public class Page
             {
                 for (String templateName : template.subPages.keySet())
                 {
-                    PageTemplate subTemplate = theme.templates.get(templateName.toLowerCase());
+                    PageTemplate subTemplate = theme.getTemplate(templateName);
                     if (subTemplate != null)
                     {
                         addTemplate(theme, subTemplate);
@@ -124,7 +124,7 @@ public class Page
      */
     public String buildPage()
     {
-        return buildPages(theme.templates.get(theme.mainTemplate));
+        return buildPages(theme.mainTemplate);
     }
 
     /**
@@ -141,7 +141,7 @@ public class Page
             String[] segments = pageSegments.get(template);
             for (Map.Entry<String, Integer> entry : template.subPages.entrySet())
             {
-                PageTemplate template1 = theme.templates.get(entry.getKey());
+                PageTemplate template1 = theme.getTemplate(entry.getKey());
                 if (template1 != null)
                 {
                     segments[entry.getValue()] = buildPages(template1);

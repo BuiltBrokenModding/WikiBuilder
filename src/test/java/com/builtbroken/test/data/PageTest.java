@@ -24,9 +24,9 @@ public class PageTest extends TestCase
         HashMap<String, String> injectionData = new HashMap();
         page.inject(injectionData);
 
-        assertEquals("data:content1", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[1]);
-        assertEquals("data:content2", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[3]);
-        assertEquals("data:content3", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[5]);
+        assertEquals("data:content1", page.pageSegments.get(page.theme.mainTemplate)[1]);
+        assertEquals("data:content2", page.pageSegments.get(page.theme.mainTemplate)[3]);
+        assertEquals("data:content3", page.pageSegments.get(page.theme.mainTemplate)[5]);
     }
 
     @Test
@@ -39,9 +39,9 @@ public class PageTest extends TestCase
         injectionData.put("data:content1", "test");
         page.inject(injectionData);
 
-        assertEquals("test", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[1]);
-        assertEquals("data:content2", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[3]);
-        assertEquals("data:content3", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[5]);
+        assertEquals("test", page.theme.mainTemplate);
+        assertEquals("data:content2", page.pageSegments.get(page.theme.mainTemplate)[3]);
+        assertEquals("data:content3", page.pageSegments.get(page.theme.mainTemplate)[5]);
     }
 
     @Test
@@ -56,9 +56,9 @@ public class PageTest extends TestCase
         injectionData.put("data:content3", "test2");
         page.inject(injectionData);
 
-        assertEquals("test", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[1]);
-        assertEquals("test1", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[3]);
-        assertEquals("test2", page.pageSegments.get(page.theme.templates.get(page.theme.mainTemplate))[5]);
+        assertEquals("test", page.pageSegments.get(page.theme.mainTemplate)[1]);
+        assertEquals("test1", page.pageSegments.get(page.theme.mainTemplate)[3]);
+        assertEquals("test2", page.pageSegments.get(page.theme.mainTemplate)[5]);
 
         final String compare = "" +
                 "<html>" +
@@ -76,7 +76,7 @@ public class PageTest extends TestCase
     {
         PageTheme theme =  new PageTheme(null);
         theme.mainTemplate = PageTemplateTest.getSmallTemplate();
-        theme.templates.put("template", theme.mainTemplate);
+        theme.addTemplate(theme.mainTemplate);
         return theme;
     }
 }
