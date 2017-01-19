@@ -37,7 +37,7 @@ public class Utils
         }
         catch (Exception e)
         {
-            throw new RuntimeException("Failed to parse file as json [" + file + "]");
+            throw new RuntimeException("Failed to parse file as json [" + file + "]", e);
         }
     }
 

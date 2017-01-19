@@ -369,10 +369,7 @@ public class PageBuilder
         logger.info("Creating page objects and injecting data");
         //Inject missing data into
         generatedPages = new ArrayList();
-        for(CategoryData categoryData : this.categoryData.values())
-        {
-
-        }
+        String categoryHTML = pageTheme.buildCategoriesHTML(vars.get("outputPath"), vars, categoryData.values());
 
         for (PageData data : loadedWikiData)
         {
@@ -383,6 +380,7 @@ public class PageBuilder
             //Inject page main content
             page.inject("wikiContentHtml", data.buildHTML());
             page.inject("PageName", data.pageName);
+            page.inject("ModCategoryNav", categoryHTML);
             //Inject page data
             page.inject(data.data);
             //Inject global data

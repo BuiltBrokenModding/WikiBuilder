@@ -159,4 +159,23 @@ public class SegmentedHTML
         }
         return html;
     }
+
+    public static void injectData(String[] htmlSegments, HashMap<String, Integer> injectKeys, HashMap<String, String> vars)
+    {
+        for (Map.Entry<String, String> entry : vars.entrySet())
+        {
+            if (injectKeys.containsKey(entry.getKey().toLowerCase()))
+            {
+                htmlSegments[injectKeys.get(entry.getKey().toLowerCase())] = entry.getValue();
+            }
+        }
+    }
+
+    public static void injectData(String[] htmlSegments, HashMap<String, Integer> injectKeys, String key, String value)
+    {
+        if (injectKeys.containsKey(key.toLowerCase()))
+        {
+            htmlSegments[injectKeys.get(key.toLowerCase())] = value;
+        }
+    }
 }

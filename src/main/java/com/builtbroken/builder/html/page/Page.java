@@ -32,7 +32,7 @@ public class Page
     {
         this.theme = theme;
         pageSegments = new HashMap();
-        addTemplate(theme, theme.templates.get(theme.mainTemplate));
+        addTemplate(theme, theme.mainTemplate);
     }
 
     /**

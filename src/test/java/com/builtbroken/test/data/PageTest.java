@@ -75,8 +75,8 @@ public class PageTest extends TestCase
     private PageTheme getTheme()
     {
         PageTheme theme =  new PageTheme(null);
-        theme.mainTemplate = "template";
-        theme.templates.put("template", PageTemplateTest.getSmallTemplate());
+        theme.mainTemplate = PageTemplateTest.getSmallTemplate();
+        theme.templates.put("template", theme.mainTemplate);
         return theme;
     }
 }
