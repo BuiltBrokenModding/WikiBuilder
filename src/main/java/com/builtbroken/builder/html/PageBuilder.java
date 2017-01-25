@@ -257,38 +257,17 @@ public class PageBuilder
     public void parseWikiData()
     {
         logger.info("Loading and parsing data from pages");
-        for (PageData data : loadedWikiData)
+        Iterator<PageData> it = loadedWikiData.iterator();
+        while(it.hasNext())
         {
-            data.load();
-        }
-        logger.info("Collecting link and image data from pages");
-        for (PageData data : loadedWikiData)
-        {
-            for (Map.Entry<String, String> entry : data.linkReplaceKeys.entrySet())
+            PageData data = it.next();
+            if(data.type == null || !data.type.equalsIgnoreCase("ignore"))
             {
-                final String key = entry.getKey().toLowerCase();
-                if (!linkData.linkReplaceKeys.containsKey(key))
-                {
-                    linkData.linkReplaceKeys.put(key, "<a href=\"" + data.getOutput(vars.get("outputPath")) + "\">" + entry.getValue() + "</a>");
-                }
-                else
-                {
-                    throw new RuntimeException("Duplicate link key[" + entry.getKey() + "] was found for page [" + data.pageName + "] key is linked to " + linkData.linkReplaceKeys.get(key));
-                }
+                data.load(this);
             }
-            for (Map.Entry<String, String> entry : data.imgReplaceKeys.entrySet())
+            else
             {
-                final String key = entry.getKey().toLowerCase();
-                if (!imageData.imageReplaceKeys.containsKey(key))
-                {
-                    String path = vars.get("imagePath") + entry.getValue();
-                    imageData.imageReplaceKeys.put(key, "<img src=\"" + entry.getValue() + "\">");
-                    imageData.images.put(key, path);
-                }
-                else
-                {
-                    throw new RuntimeException("Duplicate image key[" + entry.getKey() + "] was found for page [" + data.pageName + "] key is linked to " + imageData.imageReplaceKeys.get(key));
-                }
+                it.remove();
             }
         }
     }
@@ -373,20 +352,23 @@ public class PageBuilder
 
         for (PageData data : loadedWikiData)
         {
-            Page page = new Page();
-            page.outputFile = new File(outputDirectory, data.getOutput(vars.get("outputPath")));
-            page.setTheme(pageTheme);
+            if(data.type == null || !"ignore".equalsIgnoreCase(data.type))
+            {
+                Page page = new Page();
+                page.outputFile = new File(outputDirectory, data.getOutput(vars.get("outputPath")));
+                page.setTheme(pageTheme);
 
-            //Inject page main content
-            page.inject("wikiContentHtml", data.buildHTML());
-            page.inject("PageName", data.pageName);
-            page.inject("ModCategoryNav", categoryHTML);
-            //Inject page data
-            page.inject(data.data);
-            //Inject global data
-            page.inject(vars);
-            //Add page to generated pages
-            generatedPages.add(page);
+                //Inject page main content
+                page.inject("wikiContentHtml", data.buildHTML());
+                page.inject("PageName", data.pageName);
+                page.inject("ModCategoryNav", categoryHTML);
+                //Inject page data
+                page.inject(data.data);
+                //Inject global data
+                page.inject(vars);
+                //Add page to generated pages
+                generatedPages.add(page);
+            }
         }
         logger.info("Done...");
 

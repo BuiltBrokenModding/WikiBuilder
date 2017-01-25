@@ -221,6 +221,10 @@ public class PageTheme
             {
                 items += s;
             }
+            if(items.isEmpty())
+            {
+                items += "<a href=\"index.html\">index</a>";
+            }
         }
         //Add sub categories
         if (!categoryData.subCategories.isEmpty())

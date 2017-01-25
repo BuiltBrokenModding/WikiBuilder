@@ -27,13 +27,13 @@ public class SegmentedHTML
 
 
     /** References to external pages or pre-existing pages */
-    public HashMap<String, Integer> pageReferences;
+    public HashMap<String, Integer> pageReferences = new HashMap();
     /** References to image files */
-    public HashMap<String, Integer> imgReferences;
+    public HashMap<String, Integer> imgReferences = new HashMap();
 
 
     /** References to other pages that need to go though linkReplaceKeys */
-    public HashMap<String, Integer> pageLinks;
+    public HashMap<String, Integer> pageLinks = new HashMap();
 
     /**
      * Called to load the template from disk
@@ -84,12 +84,6 @@ public class SegmentedHTML
      */
     public void process(String templateString)
     {
-        //Clear old tags and init
-        injectionTags = new HashMap();
-        pageReferences = new HashMap();
-        pageLinks = new HashMap();
-        imgReferences = new HashMap();
-
         //Split string to make it easier to format
         htmlSegments = templateString.split("#");
 
