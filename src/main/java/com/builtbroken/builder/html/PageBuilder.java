@@ -24,6 +24,8 @@ import java.util.*;
  */
 public class PageBuilder
 {
+    public static final String GITHUB = "https://github.com/BuiltBrokenModding/WikiBuilder";
+
     public final Logger logger;
     /** Main directory to read and write files inside */
     public final File workingDirectory;
@@ -258,10 +260,10 @@ public class PageBuilder
     {
         logger.info("Loading and parsing data from pages");
         Iterator<PageData> it = loadedWikiData.iterator();
-        while(it.hasNext())
+        while (it.hasNext())
         {
             PageData data = it.next();
-            if(data.type == null || !data.type.equalsIgnoreCase("ignore"))
+            if (data.type == null || !data.type.equalsIgnoreCase("ignore"))
             {
                 data.load(this);
             }
@@ -311,7 +313,7 @@ public class PageBuilder
                 }
             }
             //Map page to category
-            if(data.category != null && categoryData.containsKey(data.category.toLowerCase()))
+            if (data.category != null && categoryData.containsKey(data.category.toLowerCase()))
             {
                 categoryData.get(data.category.toLowerCase()).pages.add(data);
             }
@@ -319,20 +321,20 @@ public class PageBuilder
 
         //Find children categories
         List<CategoryData> children = new ArrayList();
-        for(CategoryData d : categoryData.values())
+        for (CategoryData d : categoryData.values())
         {
-            if(d.parent != null && categoryData.containsKey(d.parent.toLowerCase()))
+            if (d.parent != null && categoryData.containsKey(d.parent.toLowerCase()))
             {
                 children.add(d);
             }
         }
         //Removed children from main list
-        for(CategoryData d : children)
+        for (CategoryData d : children)
         {
             categoryData.remove(d);
         }
         //Map children to parents
-        for(CategoryData d : children)
+        for (CategoryData d : children)
         {
             categoryData.get(d.parent.toLowerCase()).subCategories.add(d);
         }
@@ -352,7 +354,7 @@ public class PageBuilder
 
         for (PageData data : loadedWikiData)
         {
-            if(data.type == null || !"ignore".equalsIgnoreCase(data.type))
+            if (data.type == null || !"ignore".equalsIgnoreCase(data.type))
             {
                 Page page = new Page();
                 page.outputFile = new File(outputDirectory, data.getOutput(vars.get("outputPath")));
@@ -362,6 +364,8 @@ public class PageBuilder
                 page.inject("wikiContentHtml", data.buildHTML());
                 page.inject("PageName", data.pageName);
                 page.inject("ModCategoryNav", categoryHTML);
+                page.inject("time", "" + System.nanoTime());
+                page.inject("builderGithub", "" + GITHUB);
                 //Inject page data
                 page.inject(data.data);
                 //Inject global data
