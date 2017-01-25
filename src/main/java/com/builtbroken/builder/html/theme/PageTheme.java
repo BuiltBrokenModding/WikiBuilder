@@ -53,6 +53,7 @@ public class PageTheme
     public PageTheme(File file)
     {
         this.themeFile = file;
+        templates = new HashMap();
     }
 
     /**
@@ -77,7 +78,6 @@ public class PageTheme
                     Map<String, String> map = new HashMap();
                     map = (Map<String, String>) gson.fromJson(object.get("templates"), map.getClass());
 
-                    templates = new HashMap();
                     for (Map.Entry<String, String> entry : map.entrySet())
                     {
                         String key = entry.getKey().toLowerCase();
