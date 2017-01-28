@@ -23,7 +23,7 @@ public class PageTemplateTest extends TestCase
         assertEquals("</p>", template.htmlSegments[2]);
 
         assertEquals(1, template.injectionTags.size());
-        assertEquals(1, (int) template.injectionTags.get("data:content"));
+        assertEquals(1, (int) template.injectionTags.get("content"));
     }
 
     @Test
@@ -37,9 +37,9 @@ public class PageTemplateTest extends TestCase
         assertEquals("data:content3", template.htmlSegments[5]);
 
         assertEquals(3, template.injectionTags.size());
-        assertEquals(1, (int) template.injectionTags.get("data:content1"));
-        assertEquals(3, (int) template.injectionTags.get("data:content2"));
-        assertEquals(5, (int) template.injectionTags.get("data:content3"));
+        assertEquals(1, (int) template.injectionTags.get("content1"));
+        assertEquals(3, (int) template.injectionTags.get("content2"));
+        assertEquals(5, (int) template.injectionTags.get("content3"));
     }
 
     public static PageTemplate getSmallTemplate()

@@ -36,10 +36,10 @@ public class PageTest extends TestCase
         page.setTheme(getTheme());
 
         HashMap<String, String> injectionData = new HashMap();
-        injectionData.put("data:content1", "test");
+        injectionData.put("content1", "test");
         page.inject(injectionData);
 
-        assertEquals("test", page.theme.mainTemplate);
+        assertEquals("test", page.pageSegments.get(page.theme.mainTemplate)[1]);
         assertEquals("data:content2", page.pageSegments.get(page.theme.mainTemplate)[3]);
         assertEquals("data:content3", page.pageSegments.get(page.theme.mainTemplate)[5]);
     }
@@ -51,9 +51,9 @@ public class PageTest extends TestCase
         page.setTheme(getTheme());
 
         HashMap<String, String> injectionData = new HashMap();
-        injectionData.put("data:content1", "test");
-        injectionData.put("data:content2", "test1");
-        injectionData.put("data:content3", "test2");
+        injectionData.put("content1", "test");
+        injectionData.put("content2", "test1");
+        injectionData.put("content3", "test2");
         page.inject(injectionData);
 
         assertEquals("test", page.pageSegments.get(page.theme.mainTemplate)[1]);
