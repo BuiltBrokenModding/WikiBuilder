@@ -1,19 +1,9 @@
-
-
-
 plugins {
   id "com.github.johnrengelman.shadow" version "1.2.4"
 }
 
 apply plugin: 'java'
 apply from: 'https://raw.githubusercontent.com/BuiltBrokenModding/BuiltBrokenScripts/buildScripts/index/index-nonmc.gradle'
-/**
- * Repositories
- * @see http://www.gradle.org/docs/current/userguide/userguide_single.html#sec:repositories
- */
-repositories {
-    mavenCentral()
-}
 
 shadowJar {
   configurations = [project.configurations.compile]
