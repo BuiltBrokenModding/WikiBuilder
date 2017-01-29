@@ -5,8 +5,7 @@ import com.builtbroken.builder.html.page.Page;
 import com.builtbroken.builder.html.theme.PageTemplate;
 import com.builtbroken.builder.html.theme.PageTheme;
 
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * @see <a href="https://github.com/BuiltBrokenModding/VoltzEngine/blob/development/license.md">License</a> for what you can and can't do with the code.
@@ -23,13 +22,18 @@ public class CategoryPage extends Page
      * Builds the categories data and places it inside of the page
      *
      * @param basePath - base wiki page path
-     * @param data     - list of categories to generate
+     * @param dataCollection     - list of categories to generate
      * @return HTML
      */
-    public CategoryPage injectData(String basePath, Collection<CategoryData> data, HashMap<String, String> vars)
+    public CategoryPage injectData(String basePath, Collection<CategoryData> dataCollection, HashMap<String, String> vars)
     {
         //Build categories body
         String categories = "";
+        //Copy list and sort
+        List<CategoryData> data = new ArrayList();
+        data.addAll(dataCollection);
+        Collections.sort(data, new CategorySorter());
+
         for (CategoryData categoryData : data)
         {
             CategoryEntry entry = new CategoryEntry(theme, categoryData, false);

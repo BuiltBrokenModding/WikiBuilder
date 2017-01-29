@@ -7,6 +7,7 @@ import com.builtbroken.builder.html.page.PageData;
 import com.builtbroken.builder.html.theme.PageTemplate;
 import com.builtbroken.builder.html.theme.PageTheme;
 
+import java.util.Collections;
 import java.util.HashMap;
 
 /**
@@ -31,6 +32,7 @@ public class CategoryEntry extends Page
         //Add sub categories
         if (!categoryData.subCategories.isEmpty())
         {
+            Collections.sort(categoryData.subCategories, new CategorySorter());
             for (CategoryData subCategory : categoryData.subCategories)
             {
                 CategoryEntry entry = new CategoryEntry(theme, subCategory, true);
@@ -42,6 +44,7 @@ public class CategoryEntry extends Page
         //If not sub categories add item entries
         else
         {
+            Collections.sort(categoryData.pages, new CategoryItemSorter());
             //Build items
             for (PageData pageData : categoryData.pages)
             {
