@@ -161,21 +161,11 @@ public class PageBuilder
                 {
                     logger.info("Categories:");
                     categoryData = new HashMap();
-                    Set<Map.Entry<String, JsonElement>> entrySet = object.get("categories").getAsJsonObject().entrySet();
+                    final Set<Map.Entry<String, JsonElement>> entrySet = object.get("categories").getAsJsonObject().entrySet();
                     for (Map.Entry<String, JsonElement> entry : entrySet)
                     {
-                        JsonObject catEntry = entry.getValue().getAsJsonObject();
-                        CategoryData categoryData = new CategoryData(entry.getKey().toLowerCase());
-                        categoryData.displayName = catEntry.getAsJsonPrimitive("text").getAsString();
-                        if (catEntry.has("page"))
-                        {
-                            categoryData.pageID = catEntry.getAsJsonPrimitive("page").getAsString();
-                        }
-                        if (catEntry.has("parent"))
-                        {
-                            categoryData.parent = catEntry.getAsJsonPrimitive("parent").getAsString();
-                        }
-                        this.categoryData.put(entry.getKey().toLowerCase(), categoryData);
+                        final JsonObject catEntry = entry.getValue().getAsJsonObject();
+                        this.categoryData.put(entry.getKey().toLowerCase(), CategoryData.parse(entry.getKey(), catEntry));
                     }
                     logger.info("");
                 }
