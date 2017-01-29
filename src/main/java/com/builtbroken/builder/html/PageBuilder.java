@@ -331,7 +331,7 @@ public class PageBuilder
         //Removed children from main list
         for (CategoryData d : children)
         {
-            categoryData.remove(d);
+            categoryData.remove(d.name);
         }
         //Map children to parents
         for (CategoryData d : children)
