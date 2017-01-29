@@ -29,6 +29,11 @@ public class PageData extends SegmentedHTML
     public String category;
     /** Type of page, OPTIONAL */
     public String type;
+    /** Alternative name to use for displaying in category list, OPTIONAL */
+    public String categoryDisplayName;
+    /** Order to use for displaying item in list, OPTIONAL */
+    public String categoryDisplayOrder;
+
     /** Location of the json data for this page. */
     public final File file;
     /** Data unique to just this page, will be injected into the {@link Page} object */
@@ -90,10 +95,20 @@ public class PageData extends SegmentedHTML
             {
                 type = object.getAsJsonPrimitive("type").getAsString().toLowerCase();
                 debug("\tType: " + type);
-                if(type.equalsIgnoreCase("ignore"))
+                if (type.equalsIgnoreCase("ignore"))
                 {
                     return;
                 }
+            }
+            if (object.has("category_display_name"))
+            {
+                categoryDisplayName = object.getAsJsonPrimitive("category_display_name").getAsString().toLowerCase();
+                debug("\tCategory Display Name: " + type);
+            }
+            if (object.has("category_display_order"))
+            {
+                categoryDisplayOrder = object.getAsJsonPrimitive("category_display_order").getAsString().toLowerCase();
+                debug("\tCategory Display Order: " + type);
             }
             if (object.has("category"))
             {

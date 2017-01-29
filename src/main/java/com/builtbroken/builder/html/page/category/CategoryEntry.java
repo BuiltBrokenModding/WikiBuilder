@@ -51,7 +51,7 @@ public class CategoryEntry extends Page
                 //Build item entry
                 String[] htmlSegments = theme.categoryItemTemplate.htmlSegments.clone();
                 SegmentedHTML.injectData(htmlSegments, theme.categoryItemTemplate.injectionTags, "itemURL", pageData.getOutput(basePath));
-                SegmentedHTML.injectData(htmlSegments, theme.categoryItemTemplate.injectionTags, "itemName", pageData.pageName);
+                SegmentedHTML.injectData(htmlSegments, theme.categoryItemTemplate.injectionTags, "itemName", pageData.categoryDisplayName != null && !pageData.categoryDisplayName.isEmpty() ? pageData.categoryDisplayName : pageData.pageName);
                 SegmentedHTML.injectData(htmlSegments, theme.categoryItemTemplate.injectionTags, vars);
                 //Append to items HTML
                 items += SegmentedHTML.toString(htmlSegments);
