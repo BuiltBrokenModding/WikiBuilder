@@ -4,6 +4,7 @@ import com.builtbroken.builder.html.page.PageData;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -19,7 +20,7 @@ public class CategoryData
     public final String name;
 
     /** Pages this category contains */
-    public List<PageData> pages;
+    public LinkedList<PageData> pages;
     /** Sub categories that are appended to this. */
     public List<CategoryData> subCategories;
     /** Name the user sees for the category */
@@ -37,7 +38,7 @@ public class CategoryData
     public CategoryData(String name)
     {
         this.name = name;
-        pages = new ArrayList();
+        pages = new LinkedList();
         subCategories = new ArrayList();
     }
 

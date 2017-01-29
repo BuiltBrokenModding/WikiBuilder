@@ -19,6 +19,8 @@ import java.util.Map;
  */
 public class PageData extends SegmentedHTML
 {
+    /** Reference key used to find this page, is also the file name */
+    public String pageKey;
     /** Display name of the page */
     public String pageName;
     /** File name to use for the output file, OPTIONAL */
@@ -52,6 +54,7 @@ public class PageData extends SegmentedHTML
     {
         this.file = file;
         data = new HashMap();
+        pageKey = file.getName().substring(0, file.getName().indexOf("."));
     }
 
     /**
@@ -102,12 +105,12 @@ public class PageData extends SegmentedHTML
             }
             if (object.has("category_display_name"))
             {
-                categoryDisplayName = object.getAsJsonPrimitive("category_display_name").getAsString().toLowerCase();
+                categoryDisplayName = object.getAsJsonPrimitive("category_display_name").getAsString();
                 debug("\tCategory Display Name: " + type);
             }
             if (object.has("category_display_order"))
             {
-                categoryDisplayOrder = object.getAsJsonPrimitive("category_display_order").getAsString().toLowerCase();
+                categoryDisplayOrder = object.getAsJsonPrimitive("category_display_order").getAsString();
                 debug("\tCategory Display Order: " + type);
             }
             if (object.has("category"))
@@ -210,6 +213,6 @@ public class PageData extends SegmentedHTML
         {
             return "/" + basePath + fileNameOverride + fileExtension;
         }
-        return "/" + basePath + file.getName().substring(0, file.getName().indexOf(".")) + fileExtension;
+        return "/" + basePath + pageKey + fileExtension;
     }
 }

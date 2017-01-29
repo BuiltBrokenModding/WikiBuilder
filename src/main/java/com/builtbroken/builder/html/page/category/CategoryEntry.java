@@ -7,8 +7,7 @@ import com.builtbroken.builder.html.page.PageData;
 import com.builtbroken.builder.html.theme.PageTemplate;
 import com.builtbroken.builder.html.theme.PageTheme;
 
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * @see <a href="https://github.com/BuiltBrokenModding/VoltzEngine/blob/development/license.md">License</a> for what you can and can't do with the code.
@@ -44,7 +43,51 @@ public class CategoryEntry extends Page
         //If not sub categories add item entries
         else
         {
+            //Remove pages that need to be inserted
+            List<PageData> insertPages = new ArrayList();
+            ListIterator<PageData> it = categoryData.pages.listIterator();
+            while (it.hasNext())
+            {
+                PageData data = it.next();
+                if (data.categoryDisplayOrder != null)
+                {
+                    insertPages.add(data);
+                    it.remove();
+                }
+            }
+
+            //Sort abc
             Collections.sort(categoryData.pages, new CategoryItemSorter());
+
+            //Sort by ordering
+            for (PageData insert : insertPages)
+            {
+                final String[] order = insert.categoryDisplayOrder.split(":");
+                it = categoryData.pages.listIterator();
+                while (it.hasNext())
+                {
+                    final PageData page = it.next();
+                    if (page.pageKey.equalsIgnoreCase(order[1]))
+                    {
+                        if (order[0].equalsIgnoreCase("after"))
+                        {
+                            it.add(insert);
+                        }
+                        //Before
+                        else if (order[0].equalsIgnoreCase("before"))
+                        {
+                            it.previous();
+                            it.add(insert);
+                            it.next();
+                        }
+                        else
+                        {
+                            throw new RuntimeException("Invalid order format '" + order[0] + "' for page " + insert.pageKey);
+                        }
+                    }
+                }
+            }
+
             //Build items
             for (PageData pageData : categoryData.pages)
             {
@@ -59,8 +102,11 @@ public class CategoryEntry extends Page
         }
 
         inject("categoryName", categoryData.displayName);
+
         inject("categoryItems", items);
+
         inject(vars);
+
     }
 
     @Override
