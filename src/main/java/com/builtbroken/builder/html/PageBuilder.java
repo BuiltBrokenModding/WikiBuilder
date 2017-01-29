@@ -3,8 +3,9 @@ package com.builtbroken.builder.html;
 import com.builtbroken.builder.html.data.CategoryData;
 import com.builtbroken.builder.html.data.ImageData;
 import com.builtbroken.builder.html.data.LinkData;
-import com.builtbroken.builder.html.page.Page;
+import com.builtbroken.builder.html.page.EntryPage;
 import com.builtbroken.builder.html.page.PageData;
+import com.builtbroken.builder.html.page.category.CategoryPage;
 import com.builtbroken.builder.html.theme.PageTheme;
 import com.builtbroken.builder.utils.Utils;
 import com.google.gson.Gson;
@@ -52,7 +53,7 @@ public class PageBuilder
     /** All pages for the wiki */
     public List<PageData> loadedWikiData;
     /** Actual generated pages in data form */
-    public List<Page> generatedPages;
+    public List<EntryPage> generatedPages;
 
     public ImageData imageData;
     public LinkData linkData;
@@ -246,7 +247,7 @@ public class PageBuilder
                 }
                 else if (file.getName().endsWith(".json"))
                 {
-                    logger.info("\tPage:   " + file);
+                    logger.info("\tPageWiki:   " + file);
                     wikiPages.add(new PageData(file));
                 }
             }
@@ -331,7 +332,7 @@ public class PageBuilder
         //Removed children from main list
         for (CategoryData d : children)
         {
-            categoryData.remove(d.name);
+            categoryData.remove(d.name.toLowerCase());
         }
         //Map children to parents
         for (CategoryData d : children)
@@ -350,13 +351,13 @@ public class PageBuilder
         logger.info("Creating page objects and injecting data");
         //Inject missing data into
         generatedPages = new ArrayList();
-        String categoryHTML = pageTheme.buildCategoriesHTML(vars.get("outputPath"), vars, categoryData.values());
+        String categoryHTML = new CategoryPage(pageTheme).injectData(vars.get("outputPath"), categoryData.values(), vars).buildPage();
 
         for (PageData data : loadedWikiData)
         {
             if (data.type == null || !"ignore".equalsIgnoreCase(data.type))
             {
-                Page page = new Page();
+                EntryPage page = new EntryPage();
                 page.outputFile = new File(outputDirectory, data.getOutput(vars.get("outputPath")));
                 page.setTheme(pageTheme);
 
@@ -378,7 +379,7 @@ public class PageBuilder
 
         logger.info("Saving pages to disk...");
         //Output pages to file
-        for (Page page : generatedPages)
+        for (EntryPage page : generatedPages)
         {
             logger.info("\tOutputting file to " + page.outputFile);
             String html = page.buildPage();

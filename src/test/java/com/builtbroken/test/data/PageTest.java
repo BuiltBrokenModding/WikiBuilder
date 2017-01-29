@@ -1,5 +1,6 @@
 package com.builtbroken.test.data;
 
+import com.builtbroken.builder.html.page.EntryPage;
 import com.builtbroken.builder.html.page.Page;
 import com.builtbroken.builder.html.theme.PageTheme;
 import com.builtbroken.test.html.PageTemplateTest;
@@ -18,7 +19,7 @@ public class PageTest extends TestCase
     @Test
     public void testInjectNoData()
     {
-        Page page = new Page();
+        Page page = new EntryPage();
         page.setTheme(getTheme());
 
         HashMap<String, String> injectionData = new HashMap();
@@ -32,7 +33,7 @@ public class PageTest extends TestCase
     @Test
     public void testInjectSomeData()
     {
-        Page page = new Page();
+        Page page = new EntryPage();
         page.setTheme(getTheme());
 
         HashMap<String, String> injectionData = new HashMap();
@@ -47,7 +48,7 @@ public class PageTest extends TestCase
     @Test
     public void testFull()
     {
-        Page page = new Page();
+        Page page = new EntryPage();
         page.setTheme(getTheme());
 
         HashMap<String, String> injectionData = new HashMap();

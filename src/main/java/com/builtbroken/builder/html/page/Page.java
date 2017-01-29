@@ -3,7 +3,6 @@ package com.builtbroken.builder.html.page;
 import com.builtbroken.builder.html.theme.PageTemplate;
 import com.builtbroken.builder.html.theme.PageTheme;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,15 +12,12 @@ import java.util.Map;
  * @see <a href="https://github.com/BuiltBrokenModding/VoltzEngine/blob/development/license.md">License</a> for what you can and can't do with the code.
  * Created by Dark(DarkGuardsman, Robert) on 1/16/2017.
  */
-public class Page
+public abstract class Page
 {
-    /** Location to save this page */
-    public File outputFile;
     /** Theme that defines that layout of this page */
     public PageTheme theme;
     /** Actual page as segments */
     public HashMap<PageTemplate, String[]> pageSegments;
-
 
     /**
      * Called to set the primary template used to generate this page
@@ -32,7 +28,7 @@ public class Page
     {
         this.theme = theme;
         pageSegments = new HashMap();
-        addTemplate(theme, theme.mainTemplate);
+        addTemplate(theme, getPrimaryTemplate());
     }
 
     /**
@@ -41,16 +37,16 @@ public class Page
      * @param theme    - theme used to define
      * @param template
      */
-    private void addTemplate(PageTheme theme, PageTemplate template)
+    protected void addTemplate(PageTheme theme, PageTemplate template)
     {
-        if (!pageSegments.containsKey(template))
+        if (template != null && !pageSegments.containsKey(template))
         {
             pageSegments.put(template, null);
             if (template.subPages.size() > 0)
             {
                 for (String templateName : template.subPages.keySet())
                 {
-                    PageTemplate subTemplate = theme.getTemplate(templateName);
+                    PageTemplate subTemplate = getTemplateToUseFor(templateName);
                     if (subTemplate != null)
                     {
                         addTemplate(theme, subTemplate);
@@ -58,6 +54,24 @@ public class Page
                 }
             }
         }
+    }
+
+    /**
+     * Called to get the template to use for the key given.
+     * <p>
+     * Use this to dynamically change the template used
+     * depending on the page's data.
+     * <p>
+     * Keep in mind that you will need to check for the change
+     * in template key name if the template's key does not
+     * match the provided key.
+     *
+     * @param key - page injection key
+     * @return template
+     */
+    protected PageTemplate getTemplateToUseFor(String key)
+    {
+        return theme.getTemplate(key);
     }
 
     /**
@@ -124,8 +138,15 @@ public class Page
      */
     public String buildPage()
     {
-        return buildPages(theme.mainTemplate);
+        return buildPages(getPrimaryTemplate());
     }
+
+    /**
+     * Gets the main template to use to build this page
+     *
+     * @return template to use when build this page
+     */
+    protected abstract PageTemplate getPrimaryTemplate();
 
     /**
      * Recursively generates the page from the templates
@@ -133,7 +154,7 @@ public class Page
      * @param template - page template
      * @return page as string
      */
-    private String buildPages(PageTemplate template)
+    protected String buildPages(PageTemplate template)
     {
         String output = "";
         if (template != null)
@@ -141,7 +162,7 @@ public class Page
             String[] segments = pageSegments.get(template);
             for (Map.Entry<String, Integer> entry : template.subPages.entrySet())
             {
-                PageTemplate template1 = theme.getTemplate(entry.getKey());
+                PageTemplate template1 = getTemplateToUseFor(entry.getKey());
                 if (template1 != null)
                 {
                     segments[entry.getValue()] = buildPages(template1);

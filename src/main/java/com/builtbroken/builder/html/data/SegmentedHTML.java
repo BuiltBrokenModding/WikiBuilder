@@ -172,4 +172,22 @@ public class SegmentedHTML
             htmlSegments[injectKeys.get(key.toLowerCase())] = value;
         }
     }
+
+    public static String toString(String[] htmlSegments)
+    {
+        String html = "";
+        for (String s : htmlSegments)
+        {
+            html += s;
+        }
+        return html;
+    }
+
+    public static void injectPage(String[] htmlSegments2, HashMap<String, Integer> subPages, String pageKey, String pageHTML)
+    {
+        if(subPages.containsKey(pageKey.toLowerCase()))
+        {
+            htmlSegments2[subPages.get(pageKey.toLowerCase())] = pageHTML;
+        }
+    }
 }
