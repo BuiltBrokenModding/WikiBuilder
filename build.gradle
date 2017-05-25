@@ -1,5 +1,6 @@
 plugins {
   id "com.github.johnrengelman.shadow" version "1.2.4"
+  id "se.bjurr.gitchangelog.git-changelog-gradle-plugin" version "1.32"
 }
 
 apply plugin: 'java'
@@ -30,4 +31,33 @@ dependencies{
 
 }
 
-tasks.build.dependsOn shadowJar
+publishing {
+    publications {
+        mavenJava(MavenPublication)
+        {
+            artifact shadowJar
+        }
+    }
+}
+
+task makeChangelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
+    filePath = "changelog.html"
+    untaggedName = "Current release ${project.version}"
+    fromCommit = startGitRev
+    toRef =  "HEAD"
+    templateContent = """
+{{#tags}}
+<h1> Highly untested and may break world</h1>
+  <h3>{{name}}</h3>
+  <ul>
+    {{#commits}}
+    <li> <a href="https://github.com/BuiltBrokenModding/WikiBuilder/commit/{{hash}}" target=_blank> {{{message}}}</a>
+</li>
+    {{/commits}}
+  </ul>
+{{/tags}}
+"""
+}
+
+
+tasks.build.dependsOn shadowJar, makeChangelog
